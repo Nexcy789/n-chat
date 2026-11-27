@@ -1,0 +1,38 @@
+# ── 运行时数据（绝对不要提交）─────────────────────────────
+# 带前导斜杠 = 只忽略项目根下的这些目录，不影响同名子目录
+/data/
+/workspace/
+/logs/
+/backups/
+/doubao-images/
+/dist/
+/program/
+*.log
+*.jsonl
+
+# 凭据与本地配置
+.env
+.env.*
+/keys/
+*.keystore
+*.jks
+*.p12
+
+# ── 构建产物 ────────────────────────────────────────────
+node_modules/
+*.apk
+*.aab
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/captures/
+/android/_run*/
+
+# ── 编辑器 / 系统 ───────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+desktop.ini

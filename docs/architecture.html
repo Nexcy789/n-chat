@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-chat 架构图解</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#26303d;
+    --text:#c9d1d9; --dim:#8b949e; --faint:#5b6572;
+    --accent:#58a6ff; --accent2:#7ee787; --warn:#e3b341; --bad:#f85149;
+    --purple:#bc8cff; --teal:#39c5cf; --pink:#ff7b9c; --orange:#ffa657;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.7 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px 80px}
+  header{padding:56px 0 32px;border-bottom:1px solid var(--line);margin-bottom:40px}
+  h1{font-size:30px;margin:0 0 10px;letter-spacing:.5px;font-weight:600}
+  .sub{color:var(--dim);font-size:14px}
+  .sub b{color:var(--accent2);font-weight:500}
+  h2{font-size:21px;margin:56px 0 6px;font-weight:600;display:flex;align-items:baseline;gap:10px}
+  h2 .no{font-size:13px;color:var(--faint);font-family:ui-monospace,Consolas,monospace;font-weight:400}
+  h2+.lead{color:var(--dim);font-size:14px;margin:0 0 22px}
+  h3{font-size:16px;margin:28px 0 10px;font-weight:600;color:#e6edf3}
+  p{margin:10px 0}
+  code{font-family:ui-monospace,Consolas,"Cascadia Mono",monospace;font-size:13px;
+    background:#1f2630;padding:1px 6px;border-radius:4px;color:#a5d6ff}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0}
+  .card.tight{padding:14px 18px}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:760px){.g3,.g2{grid-template-columns:1fr}}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:24px 0}
+  .kpi div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .kpi b{display:block;font-size:22px;font-weight:600;color:#e6edf3;font-variant-numeric:tabular-nums}
+  .kpi span{font-size:12px;color:var(--dim)}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:500;font-size:12.5px;background:#141a22}
+  tr:last-child td{border-bottom:0}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;
+    border:1px solid var(--line);color:var(--dim);margin-right:4px;white-space:nowrap}
+  .tag.ok{color:var(--accent2);border-color:#2b4a33}
+  .tag.warn{color:var(--warn);border-color:#4a3c18}
+  .tag.bad{color:var(--bad);border-color:#4a2523}
+  .tag.new{color:var(--purple);border-color:#3a2f52}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:18px 0}
+  .step{flex:1 1 120px;min-width:120px;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:10px 12px;font-size:12.5px;color:var(--dim);position:relative}
+  .step b{display:block;color:#e6edf3;font-size:13px;font-weight:600;margin-bottom:3px}
+  .step::after{content:'›';position:absolute;right:-9px;top:50%;transform:translateY(-50%);
+    color:var(--faint);font-size:18px;line-height:1}
+  .step:last-child::after{content:''}
+  .step.hot{border-color:#2f4a6b;background:#152033}
+  .step.hot b{color:var(--accent)}
+  .tree{border-left:1px solid var(--line);margin-left:10px;padding-left:22px}
+  .node{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 16px;margin:12px 0;font-size:13.5px}
+  .node::before{content:'';position:absolute;left:-23px;top:22px;width:22px;height:1px;background:var(--line)}
+  .node .h{font-weight:600;color:#e6edf3;margin-bottom:4px;font-size:14px}
+  .node .why{color:var(--dim);font-size:12.5px}
+  .node.leaf{border-left:3px solid var(--accent)}
+  .node.dead{opacity:.55;border-style:dashed}
+  .bar{height:9px;border-radius:5px;background:#1f2630;overflow:hidden;display:flex}
+  .bar i{display:block;height:100%}
+  .legend{font-size:12px;color:var(--dim);display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+  .legend s{text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .legend s::before{content:'';width:9px;height:9px;border-radius:2px;background:currentColor}
+  .note{border-left:3px solid var(--line);padding:2px 0 2px 14px;color:var(--dim);font-size:13.5px;margin:14px 0}
+  .note.warn{border-color:var(--warn)}
+  .note.bad{border-color:var(--bad)}
+  .note.ok{border-color:var(--accent2)}
+  .mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:#a5d6ff}
+  .cols{columns:2;column-gap:26px}
+  @media(max-width:760px){.cols{columns:1}}
+  .cols ul{margin:0;padding-left:18px}
+  .cols li{margin:6px 0;font-size:13.5px;break-inside:avoid}
+  footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:var(--faint);font-size:12.5px}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}
+  .toc a{font-size:13px;color:var(--dim);text-decoration:none;border:1px solid var(--line);
+    padding:4px 11px;border-radius:20px}
+  .toc a:hover{color:var(--accent);border-color:#2f4a6b}
+  svg{max-width:100%;height:auto;display:block;margin:8px auto}
+  svg text{font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>N-chat 架构图解</h1>
+  <div class="sub">DSH 上的多人群聊 · 全部数字来自当前代码，不是设计稿</div>
+  <div class="toc">
+    <a href="#all">全景</a>
+    <a href="#flow">一条消息的旅程</a>
+    <a href="#coord">协调器·谁接话</a>
+    <a href="#push">协调器·消息怎么推</a>
+    <a href="#mood">情绪系统</a>
+    <a href="#dsh">和 DSH 的关系</a>
+    <a href="#todo">还要改什么</a>
+  </div>
+</header>
+
+<div class="kpi">
+  <div><b>3</b><span>角色 · 6 个独立会话</span></div>
+  <div><b>7</b><span>情绪维度</span></div>
+  <div><b>8</b><span>每天主动开口上限</span></div>
+  <div><b>100′</b><span>全局冷却</span></div>
+  <div><b>80</b><span>单次回补消息上限</span></div>
+  <div><b>1.6s</b><span>前端轮询间隔</span></div>
+</div>
+
+<h2 id="all"><span class="no">01</span>全景</h2>
+<p class="lead">一个 Node 进程里跑着插件，三个 agent 各自一个会话，外部能力都是独立进程。</p>
+
+<svg viewBox="0 0 1000 430" role="img" aria-label="N-chat 全景架构图">
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#3d4a5c"/>
+    </marker>
+    <marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#2f6f8f"/>
+    </marker>
+  </defs>
+  <style>
+    .box{fill:#161b22;stroke:#26303d}
+    .box2{fill:#152033;stroke:#2f4a6b}
+    .t{fill:#c9d1d9;font-size:13px}
+    .t2{fill:#8b949e;font-size:11.5px}
+    .tb{fill:#e6edf3;font-size:13px;font-weight:600}
+    .ln{stroke:#3d4a5c;stroke-width:1.3;fill:none;marker-end:url(#ar)}
+    .ln2{stroke:#2f6f8f;stroke-width:1.5;fill:none;marker-end:url(#ar2);stroke-dasharray:5 3}
+  </style>
+
+  <!-- 客户端 -->
+  <rect class="box" x="20" y="40" width="150" height="66" rx="10"/>
+  <text class="tb" x="95" y="66" text-anchor="middle">浏览器</text>
+  <text class="t2" x="95" y="85" text-anchor="middle">index.html 单文件</text>
+  <text class="t2" x="95" y="100" text-anchor="middle">无构建</text>
+
+  <rect class="box" x="20" y="126" width="150" height="66" rx="10"/>
+  <text class="tb" x="95" y="152" text-anchor="middle">Android 壳</text>
+  <text class="t2" x="95" y="171" text-anchor="middle">WebView + 长轮询</text>
+  <text class="t2" x="95" y="186" text-anchor="middle">同一份前端</text>
+
+  <!-- webchat -->
+  <rect class="box2" x="250" y="40" width="210" height="230" rx="10"/>
+  <text class="tb" x="355" y="66" text-anchor="middle">dsh-webchat</text>
+  <text class="t2" x="355" y="84" text-anchor="middle">HTTP :4200</text>
+  <line x1="262" y1="94" x2="448" y2="94" stroke="#26303d"/>
+  <text class="t" x="266" y="115">index.js</text><text class="t2" x="420" y="115" text-anchor="end">编排</text>
+  <text class="t" x="266" y="139">store.mjs</text><text class="t2" x="420" y="139" text-anchor="end">消息流+游标</text>
+  <text class="t" x="266" y="163">coordinator.mjs</text><text class="t2" x="420" y="163" text-anchor="end">谁接话</text>
+  <text class="t" x="266" y="187">mood-driver.mjs</text><text class="t2" x="420" y="187" text-anchor="end">七维情绪</text>
+  <text class="t" x="266" y="211">impulse.mjs</text><text class="t2" x="420" y="211" text-anchor="end">静默加成</text>
+  <text class="t" x="266" y="235">server.mjs</text><text class="t2" x="420" y="235" text-anchor="end">路由+静态</text>
+  <text class="t" x="266" y="259">policy.mjs</text><text class="t2" x="420" y="259" text-anchor="end">话术/拒绝词</text>
+
+  <!-- DSH -->
+  <rect class="box" x="560" y="40" width="200" height="120" rx="10"/>
+  <text class="tb" x="660" y="64" text-anchor="middle">DSH 主进程 :3090</text>
+  <text class="t2" x="660" y="86" text-anchor="middle">agents 服务 · session 事件</text>
+  <text class="t" x="660" y="112" text-anchor="middle">角色一 · 角色二 · 角色三</text>
+  <text class="t2" x="660" y="132" text-anchor="middle">每人两套上下文（群 / 私聊）</text>
+  <text class="t2" x="660" y="152" text-anchor="middle" style="fill:#5b6572">AGENTS.md → systemPrompt</text>
+
+  <!-- 外部插件 -->
+  <rect class="box" x="780" y="40" width="200" height="210" rx="10"/>
+  <text class="tb" x="880" y="64" text-anchor="middle">外部能力</text>
+  <text class="t" x="796" y="86">voice</text>
+  <text class="t2" x="796" y="100">TTS · :8137</text>
+  <text class="t" x="796" y="122">doubao-painter</text>
+  <text class="t2" x="796" y="136">画图 · CDP :9225</text>
+  <text class="t" x="796" y="158">cover</text>
+  <text class="t2" x="796" y="172">翻唱 · SeedVC</text>
+  <text class="t" x="796" y="194">qq-bili</text>
+  <text class="t2" x="796" y="208">字幕 / 抽帧</text>
+  <text class="t" x="796" y="230">ebbinghaus</text>
+  <text class="t2" x="796" y="244">长期记忆</text>
+
+  <!-- 数据 -->
+  <rect class="box" x="250" y="300" width="730" height="96" rx="10"/>
+  <text class="tb" x="266" y="324">数据落点</text>
+  <text class="t" x="266" y="346">data/webchat/</text>
+  <text class="t2" x="366" y="346">chat.jsonl · state.json · moods.json · audio/ · uploads/ · memes/</text>
+  <text class="t" x="266" y="368">data/profiles/group/</text>
+  <text class="t2" x="392" y="368">cordis.patch.yml（运行时配置）</text>
+  <text class="t" x="266" y="390" style="fill:#5b6572" font-size="11.5">workspace/&lt;角色&gt;/AGENTS.md · doubao-images/ · refs/立绘/</text>
+
+  <!-- 连线 -->
+  <path class="ln2" d="M170,73 L248,73"/>
+  <path class="ln2" d="M170,159 L248,159"/>
+  <text class="t2" x="210" y="65" text-anchor="middle" style="fill:#2f6f8f">HTTP</text>
+  <path class="ln" d="M460,100 L558,100"/>
+  <text class="t2" x="509" y="92" text-anchor="middle">followup / 事件</text>
+  <path class="ln" d="M760,100 L778,100"/>
+  <path class="ln" d="M355,270 L355,298"/>
+  <path class="ln" d="M880,250 L880,298"/>
+</svg>
+
+<div class="note">
+  三个角色 <b>不是三个进程</b>，是同一个进程里的三个 agent 会话。所谓「群聊」是 webchat 自己维护的一条
+  <code>chat.jsonl</code> 消息流 + 每个「角色×会话」一个游标，不是 DSH 原生的群概念。
+</div>
+
+<h2 id="flow"><span class="no">02</span>一条消息的旅程</h2>
+<p class="lead">从你按下发送，到她的话出现在屏幕上，中间有 9 个可以出错的点。</p>
+
+<div class="flow">
+  <div class="step"><b>① 收下</b>落 chat.jsonl，立刻给前端看</div>
+  <div class="step"><b>② 记账</b>情绪：想念 −25%、恼火 −20 点</div>
+  <div class="step hot"><b>③ 合并窗口</b>4.5 秒，连发的并成一批</div>
+  <div class="step hot"><b>④ 协调器</b>决定谁接、谁先说</div>
+  <div class="step"><b>⑤ 拼料</b>游标之后的 80 条 + 心情段 + 时钟</div>
+  <div class="step"><b>⑥ 投递</b>agent.followup()</div>
+  <div class="step"><b>⑦ 收流</b>assistant/message 事件累积</div>
+  <div class="step hot"><b>⑧ 合并收尾</b>静默 1.5 秒 / 等工具 90 秒</div>
+  <div class="step"><b>⑨ 切段入库</b>逐条 append，前端 1.6 秒内看到</div>
+</div>
+
+<div class="grid g2">
+  <div class="card tight">
+    <h3 style="margin-top:0">这条链上的三个窗口</h3>
+    <table>
+      <tr><td>你说完等下文</td><td class="mono">mergeWindowMs 4500</td></tr>
+      <tr><td>她说完等下文</td><td class="mono">MERGE_IDLE_MS 1500</td></tr>
+      <tr><td>她在调工具</td><td class="mono">90000</td></tr>
+      <tr><td>投出去等回音（兜底）</td><td class="mono">REPLY_TIMEOUT_MS 360000</td></tr>
+    </table>
+  </div>
+  <div class="card tight">
+    <h3 style="margin-top:0">失败时的处理</h3>
+    <ul style="margin:0;padding-left:18px;font-size:13.5px;color:var(--dim)">
+      <li>游标在投递<b>之前</b>推进；<code>followup</code> 抛错就退回去</li>
+      <li>真超时（6 分钟）强制放锁，这一轮她看不到的内容不会补</li>
+      <li>模型只调工具没正文：不落消息，只放锁</li>
+      <li>第二个说话人失败：现在也会放锁（今天修的）</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="coord"><span class="no">03</span>协调器 · 谁接话</h2>
+<p class="lead">群是公开场合，三个人都回就是刷屏加三倍成本。这一层只回答一个问题：这条谁接。</p>
+
+<div class="tree">
+  <div class="node leaf">
+    <div class="h">私聊 <span class="tag">优先级 1</span></div>
+    <div class="why">不掷骰，只有一个候选，直接 <code>reason: private</code></div>
+  </div>
+  <div class="node leaf">
+    <div class="h">@所有人 <span class="tag">优先级 2</span></div>
+    <div class="why">三个都接，顺序 Fisher-Yates 打乱。每人最多 2 条（<code>reason: all</code>）</div>
+    <div class="why" style="margin-top:6px">正则：<span class="mono">@?所有人 | @全体 | 全部人都在 | 你们仨 | 你们三个</span></div>
+    <div class="why">排在点名之前判 ——「大家都听听角色二怎么说」里也有「角色二」</div>
+  </div>
+  <div class="node leaf">
+    <div class="h">点名 <span class="tag">优先级 3</span></div>
+    <div class="why">被点的先接，不受话痨值影响，也不受连说上限影响</div>
+    <div class="why">点两个时，第二个 <code>mentionedSecondChance 0.5</code> 概率也接</div>
+    <div class="why">判定是纯 <span class="mono">text.includes(名字)</span>，中文不做分词</div>
+  </div>
+  <div class="node">
+    <div class="h">掷骰 <span class="tag">兜底</span></div>
+    <div class="why">每人按话痨值独立掷一次：角色一 0.7 / 角色二 0.6 / 角色三 0.8</div>
+    <div class="why">期望 2.1 人进池，2.4% 概率一个都没有 → 这条不回</div>
+    <div class="why" style="margin-top:6px;color:var(--warn)">连说上限（<code>maxConsecutive 2</code>）现在<b>不生效</b>，今天定下不做</div>
+  </div>
+</div>
+
+<h3>掷中之后谁先说：加权抽签，不是取最高</h3>
+<pre class="mono" style="background:#141a22;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;line-height:1.9">W = 0.4 × 情绪分 + 0.6 × 沉默分 + 0.02
+
+情绪分 = max(七维) / 100          ← 含恼火（今天补进去的）
+沉默分 = 距上次开口 &lt; 10 分钟 → 0
+         10–60 分钟 → (分钟 − 10) / 50，线性到 1
+         超过 60 分钟 → 1</pre>
+
+<div class="card">
+  <h3 style="margin-top:0">2000 次模拟（今天改完后跑的）</h3>
+  <table>
+    <tr><th>场景</th><th class="num">角色一</th><th class="num">角色二</th><th class="num">角色三</th><th class="num">无人接</th></tr>
+    <tr><td>情绪都 30；角色一刚说完 5′，角色二 40′，角色三 80′</td><td class="num">15%</td><td class="num">27%</td><td class="num">56%</td><td class="num">3%</td></tr>
+    <tr><td>角色一情绪 90 但刚说完；另两个 30</td><td class="num">25%</td><td class="num">26%</td><td class="num">47%</td><td class="num">2%</td></tr>
+    <tr><td>三人情绪 60、都 20 分钟没说话</td><td class="num">34%</td><td class="num">25%</td><td class="num">39%</td><td class="num">2%</td></tr>
+  </table>
+  <div class="note" style="margin-bottom:0">
+    第二行是关键：情绪顶到 90 也救不回「刚说完」，沉默权重更高。这就是当初换掉「取最高分」的原因 ——
+    2026-11-26 角色一靠高分垄断了一整晚。
+  </div>
+</div>
+
+<div class="note bad">
+  <b>这里还缺一块：</b>连说上限是唯一的「强制换人」机制，现在没生效。意味着一旦有人情绪高又话痨，
+  她能连着接三四轮，只靠沉默分慢慢压。你觉得掷骰已经够用，那就先这样。
+</div>
+
+<h2 id="push"><span class="no">04</span>协调器 · 消息怎么推</h2>
+<p class="lead">同一份消息流，往三个方向分发：给模型、给网页、给手机。三条路的节奏完全不同。</p>
+
+<div class="grid g3">
+  <div class="card tight">
+    <h3 style="margin-top:0;color:var(--accent)">给模型</h3>
+    <div style="font-size:13px;color:var(--dim);line-height:1.8">
+      按游标取 <b>未读</b>，上限 <b>80 条</b>，超了取最近的<br>
+      拼三段：场景行 + 心情段 + 消息行<br>
+      消息行带时间戳和 <code>[语音]</code> <code>[发了一张图]</code> 标记<br>
+      投完立刻推游标（失败才回退）
+    </div>
+  </div>
+  <div class="card tight">
+    <h3 style="margin-top:0;color:var(--accent2)">给网页</h3>
+    <div style="font-size:13px;color:var(--dim);line-height:1.8">
+      每 <b>1.6 秒</b>问一次 <code>/api/state?slim=1</code><br>
+      只回版本号 <code>rev</code> + 锁 + 送达 + 情绪<br>
+      版本变了才拉全量（四个会话各 200 条）<br>
+      没变就只更新「正在输入」和「已发送」
+    </div>
+  </div>
+  <div class="card tight">
+    <h3 style="margin-top:0;color:var(--warn)">给手机</h3>
+    <div style="font-size:13px;color:var(--dim);line-height:1.8">
+      前台服务开一条长轮询：<br>
+      <code>/api/poll-all?after=&amp;wait=25</code><br>
+      挂 25 秒，有新消息立刻返回<br>
+      只推「别人发的」，自己发的不提醒<br>
+      界面可见时不弹通知
+    </div>
+  </div>
+</div>
+
+<svg viewBox="0 0 1000 300" role="img" aria-label="消息分发三路">
+  <defs>
+    <marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#3d4a5c"/>
+    </marker>
+  </defs>
+  <style>
+    .c{fill:#161b22;stroke:#26303d}
+    .ct{fill:#e6edf3;font-size:13px;font-weight:600}
+    .cs{fill:#8b949e;font-size:11.5px}
+    .cl{stroke:#3d4a5c;stroke-width:1.4;fill:none;marker-end:url(#a3)}
+  </style>
+
+  <rect class="c" x="20" y="118" width="180" height="64" rx="10"/>
+  <text class="ct" x="110" y="144" text-anchor="middle">chat.jsonl</text>
+  <text class="cs" x="110" y="163" text-anchor="middle">单一真相 · seq 递增</text>
+
+  <path class="cl" d="M200,150 C260,150 260,70 320,70"/>
+  <path class="cl" d="M200,150 C260,150 260,150 320,150"/>
+  <path class="cl" d="M200,150 C260,150 260,230 320,230"/>
+
+  <rect class="c" x="320" y="30" width="230" height="80" rx="10"/>
+  <text class="ct" x="340" y="56">speak() → 模型</text>
+  <text class="cs" x="340" y="76">游标之后的 80 条 + 心情段</text>
+  <text class="cs" x="340" y="94" style="fill:#5b6572">每次投递一份，不重复喂</text>
+
+  <rect class="c" x="320" y="118" width="230" height="64" rx="10"/>
+  <text class="ct" x="340" y="144">/api/state</text>
+  <text class="cs" x="340" y="163">slim 1.6s + 全量按需</text>
+
+  <rect class="c" x="320" y="200" width="230" height="64" rx="10"/>
+  <text class="ct" x="340" y="226">/api/poll-all</text>
+  <text class="cs" x="340" y="245">长轮询 25 秒</text>
+
+  <rect class="c" x="620" y="30" width="200" height="80" rx="10"/>
+  <text class="ct" x="640" y="56">三个 agent 会话</text>
+  <text class="cs" x="640" y="76">各自独立上下文</text>
+  <text class="cs" x="640" y="94" style="fill:#5b6572">group + dm 不共享历史</text>
+
+  <rect class="c" x="620" y="118" width="200" height="64" rx="10"/>
+  <text class="ct" x="640" y="144">网页</text>
+  <text class="cs" x="640" y="163">1.6 秒一次，约 1 KB</text>
+
+  <rect class="c" x="620" y="200" width="200" height="64" rx="10"/>
+  <text class="ct" x="640" y="226">手机通知</text>
+  <text class="cs" x="640" y="245">PushService 前台服务</text>
+
+  <text class="cs" x="840" y="150" style="fill:#5b6572">前端全量一次约 108 KB</text>
+  <text class="cs" x="840" y="168" style="fill:#5b6572">改成 slim 后常态只有几 KB</text>
+</svg>
+
+<h3>投给模型时，她到底看到什么</h3>
+<div class="card tight">
+  <pre class="mono" style="margin:0;white-space:pre-wrap;line-height:1.85;color:#a5d6ff">【你现在的心情】想他·强（系统按情绪算的，说出口别复述这几个字）
+→ 黏人、想贴着他，说话带点撒娇和「你都不理我」。
+
+[群聊 · 现在是 19:30 · 你在群里，另外还有角色二、角色三。下面是你没看到的消息]
+他（18:40）：晚上吃什么
+角色一（18:42）：汤炖上了
+他（19:28）：我先去洗澡</pre>
+  <div class="note" style="margin-bottom:0">
+    心情段只在「主导情绪 + 强度 + 语气」这个签名变化时注入一次，群聊和私聊各算各的。
+    每次都说会把她逼成复读机。
+  </div>
+</div>
+
+<h2 id="mood"><span class="no">05</span>情绪系统</h2>
+<p class="lead">七维是慢变量（小时级），管的是「她心里怎么样」；静默加成是快变量（分钟级），管的是「这个场合该不该有人说话」。</p>
+
+<table>
+  <tr>
+    <th>维度</th><th>范围</th><th>自然演化（每小时）</th><th>主要事件</th>
+  </tr>
+  <tr><td>想他 <span class="mono">missing</span></td><td>0–1</td>
+    <td>+16.7%（23:00–03:00 ×1.6）</td><td>你说话 −25%；她开口 −10%</td></tr>
+  <tr><td>吃醋 <span class="mono">jealousy</span></td><td>0–1</td>
+    <td>+0.8%（只做缓慢发酵）</td><td>你点名别人 +14% × 倍率</td></tr>
+  <tr><td>暖意 <span class="mono">warmth</span></td><td>0–1</td>
+    <td>−16.7%（只降不升）</td><td>说甜话 +30% × 倍率</td></tr>
+  <tr><td>担心 <span class="mono">worry</span></td><td>0–1</td>
+    <td>凌晨 0–5 点且你 1 小时没声音 +16.7%，其余 −16.7%</td><td>她说完没人应 +10%</td></tr>
+  <tr><td>闲 <span class="mono">boredom</span></td><td>0–1</td>
+    <td>+8.3% ~ +16.7%（想念越强涨得越快）</td><td>你说话 −20%</td></tr>
+  <tr><td>涩涩 <span class="mono">lust</span></td><td>0–1</td>
+    <td>只落：−7.5%/小时，落到 20% 停住</td><td>命中挑逗词 +15%（至少推到 20%）</td></tr>
+  <tr><td>恼火 <span class="mono">annoyanceDebt</span></td><td><b>0–60 点</b></td>
+    <td>−10 点/小时</td><td>被晾 +6 点；被拒绝 +30 点；你说话 −20 点</td></tr>
+</table>
+
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin-top:0">主导 → 语气 → 强度</h3>
+    <p style="font-size:13.5px;color:var(--dim);margin-top:0">
+      取七维最大值为 <code>score</code>，<b>&gt; 55</b> 才允许主动开口。强度按值分档：≥0.75 强 / ≥0.5 中 / 否则轻。
+    </p>
+    <table>
+      <tr><th>主导</th><th>语气键</th><th>她说话的样子</th></tr>
+      <tr><td>想他</td><td class="mono">clingy</td><td>黏、直接说想</td></tr>
+      <tr><td>吃醋</td><td class="mono">pouty</td><td>酸、提一句别人</td></tr>
+      <tr><td>暖意</td><td class="mono">warm</td><td>软、爱笑</td></tr>
+      <tr><td>担心</td><td class="mono">worried</td><td>追问、不唠叨</td></tr>
+      <tr><td>闲</td><td class="mono">light</td><td>随口找话</td></tr>
+      <tr><td>涩涩</td><td class="mono">flirty</td><td>主动、看场合收</td></tr>
+      <tr><td>恼火</td><td class="mono">sulky</td><td>短、冷、闹不是骂</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">三人倍率</h3>
+    <table>
+      <tr><th>维度</th><th class="num">角色一</th><th class="num">角色二</th><th class="num">角色三</th></tr>
+      <tr><td>想念</td><td class="num">1.0</td><td class="num">1.15</td><td class="num">0.9</td></tr>
+      <tr><td>吃醋</td><td class="num">1.3</td><td class="num">0.5</td><td class="num">1.5</td></tr>
+      <tr><td>暖意增长</td><td class="num">1.0</td><td class="num">1.15</td><td class="num">0.85</td></tr>
+      <tr><td>暖意冷却</td><td class="num">1.0</td><td class="num">0.75</td><td class="num">1.2</td></tr>
+      <tr><td>担心</td><td class="num">1.25</td><td class="num">1.0</td><td class="num">0.9</td></tr>
+      <tr><td>闲</td><td class="num">1.1</td><td class="num">0.85</td><td class="num">1.15</td></tr>
+      <tr><td>消气</td><td class="num">1.0</td><td class="num">0.9</td><td class="num">0.75</td></tr>
+    </table>
+    <div class="note" style="margin-bottom:0;font-size:12.5px">
+      配置里写 <code>moodRates: { role3: { jealousy: 2 } }</code> 可以覆盖单项。
+    </div>
+  </div>
+</div>
+
+<h3>静默加成：impulse.mjs 并进来之后</h3>
+<div class="card">
+  <p style="margin-top:0;font-size:13.5px;color:var(--dim)">
+    原来 <code>impulse.mjs</code> 是另一套模型：给每人记「他多久没来」和「群里安静多久」两个 0–100 的数，
+    按分钟往上爬，过了 65 挑人开口，状态存在 <code>impulse.json</code>。
+    它和七维里的「想他」重复，所以现在只保留它唯一有价值的那条直觉：
+  </p>
+  <pre class="mono" style="background:#141a22;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;line-height:1.9">开口分 = 情绪分（七维最大值） + 静默加成
+
+静默加成：安静 &lt; 12 分钟   → 0（硬门槛本来就挡着）
+         12 → 90 分钟       → 线性 0 → 30 分
+         &gt; 90 分钟          → 30 分封顶</pre>
+  <table>
+    <tr><th>群里安静</th><th class="num">12′</th><th class="num">30′</th><th class="num">60′</th><th class="num">90′+</th></tr>
+    <tr><td>加成</td><td class="num">0</td><td class="num">+7</td><td class="num">+18</td><td class="num">+30</td></tr>
+  </table>
+  <div class="note warn" style="margin-bottom:0">
+    <b>这套数是照着「1.4–2 小时一条」定的。</b>安静一个半小时加满 30 分，情绪只要攒到 25 就够 55 的门槛；
+    全局冷却 100 分钟兜住下限。实测（09:00 起沉默 15 小时）：8 次，间隔 100 分钟，
+    10:25 → 22:05 用完全天额度。凌晨 01:00–08:00 是静默段，不烧额度。
+  </div>
+</div>
+
+<h3>被晾与消气</h3>
+<div class="grid g2">
+  <div class="card tight">
+    <div class="h" style="font-weight:600;color:#e6edf3;margin-bottom:6px">5 分钟没人接</div>
+    <div style="font-size:12.5px;color:var(--dim);line-height:1.75">
+      恼火 +6 点、想念 +5%（原来 +12，今天减半）<br>
+      凌晨 0–8 点不算（你在睡觉）<br>
+      每句话只记一次
+    </div>
+  </div>
+  <div class="card tight">
+    <div class="h" style="font-weight:600;color:#e6edf3;margin-bottom:6px">被拒绝</div>
+    <div style="font-size:12.5px;color:var(--dim);line-height:1.75">
+      「别吵 / 滚 / 闭嘴 / 别发了」<br>
+      恼火 +30 点、暖意清零<br>
+      私聊只算对面那一位
+    </div>
+  </div>
+</div>
+<div class="note" style="margin-top:10px">
+  冷却翻倍（被晾 1/2/3 次 → ×2/×4/×8）今天摘掉了：连着被晾三次就是 6 小时不主动，比每日额度还狠。
+  函数还留在驱动层，实测一段时间再决定要不要接回来。
+</div>
+
+<h2 id="dsh"><span class="no">06</span>和 DSH 的关系</h2>
+<p class="lead">插件跑在宿主进程里，借它的会话、模型、人格注入和事件流；能力靠全局钩子和外部进程。</p>
+
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin-top:0">依赖宿主的五件事</h3>
+    <table>
+      <tr><th>用什么</th><th>干什么</th></tr>
+      <tr><td class="mono">ctx.get('agents')</td><td>拿 agents 服务，建/取会话</td></tr>
+      <tr><td class="mono">agents.create()</td><td>新会话必须是 <code>session-&lt;uuid&gt;</code>，且要显式带模型</td></tr>
+      <tr><td class="mono">agent.followup()</td><td>投一条消息进去</td></tr>
+      <tr><td class="mono">ctx.on('session/event')</td><td>听 <code>assistant/message</code>，按块类型判断正文/工具</td></tr>
+      <tr><td class="mono">agent.ctx.inject(['systemPrompt'])</td><td>把 AGENTS.md 当人格注入，不是当工作区说明</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">三个全局钩子</h3>
+    <table>
+      <tr><th>钩子</th><th>谁调</th><th>干什么</th></tr>
+      <tr><td class="mono">__nchatSink</td><td>dsh-cover</td><td>翻唱音频入流</td></tr>
+      <tr><td class="mono">__dshMediaEmit</td><td>painter</td><td>画好的图入流</td></tr>
+      <tr><td class="mono">__dshVoiceSynth</td><td>dsh-voice</td><td>文字转语音</td></tr>
+    </table>
+    <div class="note" style="margin-bottom:0;font-size:12.5px">
+      钩子没有版本协商，谁先注册谁生效。插件重载会清空。
+    </div>
+  </div>
+</div>
+
+<h3>最容易坏的地方（按概率排）</h3>
+<table>
+  <tr><th>位置</th><th>为什么脆</th><th>坏了的表现</th></tr>
+  <tr><td>附件 image block</td><td>宽高必须和文件真实尺寸一致，DSH 会校验</td><td>整条消息被吞，不报错，永远等不到回复</td></tr>
+  <tr><td><code>session/event</code> 的块结构</td><td>按 <code>text</code> / <code>tool-call</code> 判断收尾时机</td><td>话说一半被切、或工具结果丢了</td></tr>
+  <tr><td>人格注入 API</td><td><code>scope.systemPrompt.section()</code> 是宿主内部接口</td><td>人格没进去，她自称「这个工作区」</td></tr>
+  <tr><td>会话恢复</td><td>靠 sessionId 形态和 <code>resolveAgent</code></td><td>找回旧会话失败，重开一局，历史断档</td></tr>
+  <tr><td>全局钩子</td><td>没有版本、没有超时</td><td>翻唱/画图的产物插错会话或干脆不进流</td></tr>
+</table>
+
+<h2 id="todo"><span class="no">07</span>还要改什么</h2>
+<p class="lead">按「会不会咬人」排，不按工作量。</p>
+
+<div class="tree">
+  <div class="node leaf">
+    <div class="h">1. 模型不回话时，整群锁 6 分钟 <span class="tag warn">建议改</span></div>
+    <div class="why"><code>REPLY_TIMEOUT_MS = 360000</code>。今天 15:05 就撞到一次：投递后零事件，六分钟里你发什么都进不来。</div>
+    <div class="why">改法：缩到 120–150 秒，或者收到第一个事件就重置一次计时。</div>
+  </div>
+  <div class="node leaf">
+    <div class="h">2. 上传图只留 500 张，会删掉历史消息还在引用的图 <span class="tag warn">建议改</span></div>
+    <div class="why"><code>pruneUploads()</code> 按修改时间删，不看 <code>chat.jsonl</code> 有没有还在用。现在 36 张，一个多月后见。</div>
+  </div>
+  <div class="node leaf">
+    <div class="h">3. 七个配置键不在白名单里 <span class="tag">可改可不改</span></div>
+    <div class="why"><code>groupName</code> / <code>memeChance</code> / <code>memeGapMin</code> / <code>greetingChance</code> / <code>greetingEnabled</code> / <code>greetJitterSec</code> / <code>impulseJitterSec</code>。</div>
+    <div class="why">改了也不会立刻变行为（profile 里根本没写这些），只是把开关装上。修之前先确认 <code>memeChance: 0</code> 的零值判断。</div>
+  </div>
+  <div class="node leaf">
+    <div class="h">4. 主动开口的机会几乎全给了角色一和角色二 <span class="tag warn">建议改</span></div>
+    <div class="why"><code>pickByMood</code> 取情绪分最高的那个。角色三的想念倍率 0.9（最慢），永远排第三。今天模拟 8 次，她 0 次。</div>
+    <div class="why">改法：像协调器那样按权重抽签，或者给「上次开口的人」一票否决。改的是判定，不是参数。</div>
+  </div>
+  <div class="node leaf">
+    <div class="h">5. 8 次额度和「1.4–2 小时」是打架的 <span class="tag">取舍题</span></div>
+    <div class="why">8 × 100 分钟 = 13 小时。醒 16 小时的话，最后 3 小时不会有主动消息。要铺满就得加额度，要更快就得压冷却，两个一起调会前密后空。</div>
+  </div>
+  <div class="node">
+    <div class="h">6. 连说上限：不做 <span class="tag">既定</span></div>
+    <div class="why">掷骰权重里已有「刚说完的人权重低」的抑制。代价是情绪高又话痨的人仍可能连说三四轮。</div>
+  </div>
+  <div class="node dead">
+    <div class="h">7. 还有一堆没接的库函数 <span class="tag">清理项</span></div>
+    <div class="why"><code>policy.mjs</code> 二十来个导出只用了 4 个；<code>attachment.js</code> 的写附件函数没人调；
+      <code>flushTurn</code> 里有一段重复代码；前端 <code>readAt</code> 只存不用。</div>
+  </div>
+</div>
+
+<div class="note ok">
+  <b>整体判断：</b>主干是清楚的 —— 一条消息流、每人一个游标、协调器只做「谁接」、情绪只管「语气和时机」。
+  剩下的问题分两类：一类是收尾（超时兜底、图片清理、配置白名单），改起来都是几行；
+  另一类只有一个 ——「开口机会不均」，那要动 <code>pickByMood</code> 的判定逻辑，其余都不动架构。
+</div>
+
+<footer>
+  数据来源：<span class="mono">plugins/dsh-webchat/lib/*.mjs</span>、<span class="mono">web/index.html</span>、
+  <span class="mono">data/webchat/*.json</span>、<span class="mono">webchat.log</span>（1805 条消息、3778 行日志）。
+  协调器分布是 2000 次抽签的实测，不是估算。
+</footer>
+
+</div>
+</body>
+</html>

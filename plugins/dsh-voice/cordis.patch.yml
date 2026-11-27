@@ -1,0 +1,21 @@
+- insert:
+    - id: dsh-voice
+      name: dsh-voice
+      config:
+        enabled: true
+        # Breeze TTS 服务地址（breeze-server 的 --port）
+        baseUrl: 'http://127.0.0.1:8137'
+        # 默认音色，名字对应 Breeze voices 目录里的模型
+        voice: 'default'
+        # 角色 id → Breeze 音色名。一个角色一个声音，填你自己的模型名
+        voices:
+          role1: 'default'
+          role2: 'default'
+          role3: 'default'
+        format: 'mp3'
+        # 音频落盘位置。相对路径按 DSH 进程的工作目录算
+        outDir: 'data/webchat/audio'
+        # 写 'ffmpeg' 就用 PATH 里的；要指定路径就写绝对路径
+        ffmpegPath: 'ffmpeg'
+        tailPadSec: 0.4
+        keepFiles: 300

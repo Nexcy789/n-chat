@@ -1,0 +1,17 @@
+{
+  "name": "dsh-webchat",
+  "version": "0.1.0",
+  "description": "把 DSH 的会话接到自建网页聊天界面上：一个群 + 每个角色一个私聊，群里有协调器决定谁说话。",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

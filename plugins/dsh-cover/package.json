@@ -1,0 +1,14 @@
+{
+  "name": "dsh-cover",
+  "version": "0.1.0",
+  "private": true,
+  "description": "把本地 SeedVC 翻唱链路（kge.py）接成 DSH 工具：查曲库、挑段落、换音色重唱，成品直接发成 QQ 语音条。",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

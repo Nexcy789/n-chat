@@ -1,0 +1,2752 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e14">
+<title>群聊</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+/* ── 配色 ────────────────────────────────────────────────────
+   两根轴：data-scheme（light / dark）× data-palette（四套配色）。
+   早期是「一套深色底 + light 主题」的写法，现在每个配色都有明暗两版，
+   跟随系统时只切 data-scheme，配色家族不动。
+   ──────────────────────────────────────────────────────────── */
+
+html{color-scheme:dark}
+html[data-scheme="light"]{color-scheme:light}
+
+/* 深色底 */
+html,html[data-scheme="dark"]{
+  --bg:#0b0e14; --bg-deep:#070910;
+  --panel:rgba(19,24,33,.78); --panel-solid:#131822; --panel-2:#1a2030;
+  --glass:rgba(15,19,27,.72); --glass-strong:rgba(17,21,30,.88);
+  --line:rgba(255,255,255,.07); --line-strong:rgba(255,255,255,.13);
+  --text:#e9eef7; --dim:#94a0b3; --dimmer:#6d7a8c;
+  --accent:#7c8cff; --accent-2:#5a6bd8;
+  --accent-soft:rgba(124,140,255,.13); --accent-line:rgba(124,140,255,.42);
+  --accent-glow:rgba(91,110,225,.32);
+  --me:#5b6ee1; --me-2:#4855bd; --me-glow:rgba(91,110,225,.26);
+  --on-accent:#fff;
+  --bub:rgba(255,255,255,.055); --bub-line:rgba(255,255,255,.05);
+  --chip-bg:rgba(124,140,255,.12); --chip-line:rgba(124,140,255,.2);
+  --pill:rgba(255,255,255,.055);
+  --scrim:rgba(3,6,12,.58);
+  --shadow:0 16px 44px rgba(0,0,0,.46); --shadow-soft:0 6px 18px rgba(0,0,0,.26);
+  --toast:rgba(30,35,46,.94); --toast-text:#f3f6fb;
+  --scroll:rgba(255,255,255,.13);
+  --glow-a:rgba(124,140,255,.13); --glow-b:rgba(150,90,230,.10);
+  --inset-hi:inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* 浅色底 */
+html[data-scheme="light"]{
+  --bg:#f3f5f9; --bg-deep:#e8ecf4;
+  --panel:rgba(255,255,255,.8); --panel-solid:#fff; --panel-2:#fff;
+  --glass:rgba(255,255,255,.8); --glass-strong:rgba(255,255,255,.93);
+  --line:rgba(17,24,39,.075); --line-strong:rgba(17,24,39,.14);
+  --text:#131a26; --dim:#5a6472; --dimmer:#7d8797;
+  --accent:#4f63d2; --accent-2:#3c4dab;
+  --accent-soft:rgba(79,99,210,.1); --accent-line:rgba(79,99,210,.45);
+  --accent-glow:rgba(79,99,210,.26);
+  --me:#5b6ee1; --me-2:#4855bd; --me-glow:rgba(91,110,225,.22);
+  --on-accent:#fff;
+  --bub:#fff; --bub-line:rgba(17,24,39,.055);
+  --chip-bg:rgba(79,99,210,.08); --chip-line:rgba(79,99,210,.16);
+  --pill:rgba(17,24,39,.05);
+  --scrim:rgba(16,24,40,.3);
+  --shadow:0 16px 40px rgba(24,38,70,.15); --shadow-soft:0 4px 14px rgba(24,38,70,.07);
+  --toast:rgba(24,30,40,.93); --toast-text:#fff;
+  --scroll:rgba(17,24,39,.16);
+  --glow-a:rgba(124,140,255,.2); --glow-b:rgba(150,90,230,.13);
+  --inset-hi:inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+/* 陶土：暖砂底 + 赤陶色，偏日落那一路 */
+html[data-palette="clay"]{
+  --accent:#d98a63; --accent-2:#b96b47;
+  --accent-soft:rgba(217,138,99,.13); --accent-line:rgba(217,138,99,.42);
+  --accent-glow:rgba(185,107,71,.3);
+  --chip-bg:rgba(217,138,99,.12); --chip-line:rgba(217,138,99,.2);
+  --me:#a8603f; --me-2:#85472b; --me-glow:rgba(168,96,63,.3);
+  --bg:#140f0c; --bg-deep:#0e0a08;
+  --glow-a:rgba(217,138,99,.12); --glow-b:rgba(180,90,70,.1);
+}
+html[data-palette="clay"][data-scheme="light"]{
+  --bg:#fbf5f1; --bg-deep:#f2e8e1;
+  --accent:#b9613a; --accent-2:#9a4c2a;
+  --accent-soft:rgba(185,97,58,.1); --accent-line:rgba(185,97,58,.4);
+  --accent-glow:rgba(185,97,58,.22);
+  --chip-bg:rgba(185,97,58,.08); --chip-line:rgba(185,97,58,.16);
+  --me:#b9613a; --me-2:#9a4c2a; --me-glow:rgba(185,97,58,.22);
+  --glow-a:rgba(217,138,99,.16); --glow-b:rgba(180,90,70,.1);
+}
+
+/* 暗紫 */
+html[data-palette="plum"]{
+  --accent:#c07be8; --accent-2:#9a5cc4;
+  --accent-soft:rgba(192,123,232,.13); --accent-line:rgba(192,123,232,.4);
+  --accent-glow:rgba(154,92,196,.3);
+  --chip-bg:rgba(192,123,232,.12); --chip-line:rgba(192,123,232,.2);
+  --me:#7d4fa8; --me-2:#623c86; --me-glow:rgba(125,79,168,.3);
+  --bg:#0d0a12; --bg-deep:#090710;
+  --glow-a:rgba(192,123,232,.12); --glow-b:rgba(120,70,200,.1);
+}
+html[data-palette="plum"][data-scheme="light"]{
+  --bg:#faf5fd; --bg-deep:#f1e8f8;
+  --accent:#8b46b8; --accent-2:#6d3394;
+  --accent-soft:rgba(139,70,184,.09); --accent-line:rgba(139,70,184,.4);
+  --accent-glow:rgba(139,70,184,.22);
+  --chip-bg:rgba(139,70,184,.08); --chip-line:rgba(139,70,184,.16);
+  --me:#8b46b8; --me-2:#6d3394; --me-glow:rgba(139,70,184,.22);
+  --glow-a:rgba(192,123,232,.16); --glow-b:rgba(120,70,200,.1);
+}
+
+/* 青瓷：冷调灰绿，安静 */
+html[data-palette="celadon"]{
+  --accent:#8fbba6; --accent-2:#6f9d89;
+  --accent-soft:rgba(143,187,166,.12); --accent-line:rgba(143,187,166,.4);
+  --accent-glow:rgba(111,157,137,.28);
+  --chip-bg:rgba(143,187,166,.11); --chip-line:rgba(143,187,166,.2);
+  --me:#5c8977; --me-2:#476b5c; --me-glow:rgba(92,137,119,.3);
+  --bg:#0a1210; --bg-deep:#070d0b;
+  --glow-a:rgba(143,187,166,.11); --glow-b:rgba(70,120,100,.1);
+}
+html[data-palette="celadon"][data-scheme="light"]{
+  --bg:#f3f8f5; --bg-deep:#e6efe9;
+  --accent:#4f7f6b; --accent-2:#3d6555;
+  --accent-soft:rgba(79,127,107,.09); --accent-line:rgba(79,127,107,.4);
+  --accent-glow:rgba(79,127,107,.22);
+  --chip-bg:rgba(79,127,107,.08); --chip-line:rgba(79,127,107,.16);
+  --me:#4f7f6b; --me-2:#3d6555; --me-glow:rgba(79,127,107,.22);
+  --glow-a:rgba(143,187,166,.16); --glow-b:rgba(70,120,100,.1);
+}
+
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:"Segoe UI","Microsoft YaHei UI",-apple-system,system-ui,sans-serif;
+  font-size:15px; line-height:1.65; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+/* 背景只放两团极淡的光，给玻璃一点可折射的东西；不抢内容 */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(760px 460px at 12% -8%,var(--glow-a),transparent 62%),
+    radial-gradient(620px 420px at 104% 108%,var(--glow-b),transparent 60%);
+  transition:background .3s ease;
+}
+#app{display:flex;height:100%;position:relative;z-index:1}
+
+/* ── 左侧会话列表 ─────────────────────────────────────────── */
+#side{
+  width:276px;flex:0 0 276px;
+  background:var(--panel);backdrop-filter:blur(24px) saturate(1.4);
+  -webkit-backdrop-filter:blur(24px) saturate(1.4);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;
+}
+#side header{
+  padding:18px 18px 10px;font-size:15px;font-weight:600;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+#side header .dot{
+  width:8px;height:8px;border-radius:50%;background:#3fb950;
+  box-shadow:0 0 0 3px rgba(63,185,80,.16);transition:background .2s,box-shadow .2s;
+}
+#side header .dot.bad{background:#e5534b;box-shadow:0 0 0 3px rgba(229,83,75,.16)}
+#side header .dot.slow{background:#e8a33d;box-shadow:0 0 0 3px rgba(232,163,61,.16)}
+#convs{flex:1;overflow-y:auto;padding:6px 10px 14px}
+.conv{
+  display:flex;gap:11px;align-items:center;padding:9px 10px;border-radius:14px;
+  cursor:pointer;transition:background .15s ease,transform .12s ease;
+}
+.conv:active{transform:scale(.985)}
+.conv:hover{background:var(--pill)}
+.conv.on{background:var(--accent-soft)}
+.ava{
+  width:40px;height:40px;flex:0 0 40px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:15px;font-weight:600;
+  color:#fff;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.16);
+}
+.ava.g{background:linear-gradient(140deg,#5b6ee1,#8a5be1)}
+.ava.a{background:linear-gradient(140deg,#2d8f8f,#1f6b7a)}
+.ava.y{background:linear-gradient(140deg,#8a7bd8,#6b5bb5)}
+.ava.x{background:linear-gradient(140deg,#d88a5b,#b56b3a)}
+.conv .meta{flex:1;min-width:0}
+.conv .nm{font-size:15px;font-weight:500;display:flex;align-items:center;gap:6px}
+.conv .nm .tag{
+  font-size:11px;padding:1px 5px;border-radius:5px;background:var(--accent-soft);
+  color:var(--accent);font-weight:400;
+}
+.conv .pv{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.conv .badge{
+  min-width:17px;height:17px;border-radius:9px;background:#e5534b;color:#fff;
+  font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;
+}
+
+/* ── 右侧聊天区 ───────────────────────────────────────────── */
+#main{
+  flex:1;display:flex;flex-direction:column;min-width:0;width:0;
+  background:transparent;position:relative;
+  --top-h:58px; --comp-h:126px;
+}
+
+/* 顶栏贴在消息上层，消息从它下面穿过去，毛玻璃才有东西可糊 */
+#topbar{
+  position:absolute;left:0;right:0;top:0;z-index:9;
+  /* 页面铺到状态栏下面时，这段 padding 把标题推到栏下面去 */
+  padding-top:var(--status-inset,0px);
+  /* 顶部和状态栏同色，往下过渡到玻璃：接缝看不出来 */
+  background:linear-gradient(to bottom,var(--bg) 0%,var(--bg) 30%,var(--glass) 100%);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);
+  transition:background .25s ease,border-color .25s ease;
+}
+#chatHead{
+  height:58px;display:flex;align-items:center;padding:0 16px 0 18px;gap:11px;
+  background:transparent;
+}
+#chatHead .t{font-size:16px;font-weight:600;letter-spacing:.2px;line-height:1.3}
+#chatHead .s{font-size:12px;color:var(--dim);margin-top:2px;line-height:1.3}
+#chatHead .ava{box-shadow:none}
+#msgs{
+  flex:1;overflow-y:auto;overflow-x:hidden;min-width:0;
+  transition:opacity .18s ease;
+  padding:calc(var(--top-h) + 8px) 16px calc(var(--comp-h) + 10px);
+  scroll-behavior:auto;
+  overscroll-behavior:contain;
+  /* 最底下 26px 淡出，消息别从卡片边上的缝里露出来 */
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent 100%);
+}
+#msgs::-webkit-scrollbar,#convs::-webkit-scrollbar{width:6px}
+#msgs::-webkit-scrollbar-thumb,#convs::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:4px}
+#msgs::-webkit-scrollbar-track,#convs::-webkit-scrollbar-track{background:transparent}
+
+/* ── 消息 ─────────────────────────────────────────────────── */
+.row{display:flex;gap:9px;margin-bottom:14px;align-items:flex-start;max-width:100%}
+.row.same{margin-top:-9px}
+.row.same .av{opacity:0}
+.row.same .who{display:none}
+.row.me{flex-direction:row-reverse}
+.row .b{max-width:min(calc(100% - 52px),640px);min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.row .who{font-size:11px;color:var(--dimmer);margin:0 4px 4px;letter-spacing:.2px}
+.row.me .who{text-align:right}
+.bub{
+  padding:9px 13px;border-radius:17px;
+  background:var(--bub);border:1px solid var(--bub-line);
+  white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;
+  font-size:15px;line-height:1.55;min-width:0;
+  box-shadow:0 2px 10px rgba(10,15,30,.08);
+}
+.row:not(.me) .bub{border-top-left-radius:7px}
+.row.me .bub{
+  background:linear-gradient(145deg,var(--me),var(--me-2));
+  border-color:transparent;color:var(--on-accent);
+  border-top-right-radius:7px;box-shadow:0 5px 18px var(--me-glow);
+}
+.av{
+  width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:600;color:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+}
+.av.me{background:var(--pill);color:var(--dim);border:1px solid var(--line-strong)}
+.av svg{width:18px;height:18px}
+.av.av-role1{background:linear-gradient(140deg,#2d8f8f,#1f6b7a);color:#eafcff}
+.av.av-role2{background:linear-gradient(140deg,#8a7bd8,#6b5bb5);color:#f2eeff}
+.av.av-role3{background:linear-gradient(140deg,#d88a5b,#b56b3a);color:#fff4ec}
+.ava svg{width:22px;height:22px;color:#fff}
+.av.me svg{width:17px;height:17px}
+
+/* 语音 */
+.vwrap{
+  display:flex;align-items:center;gap:8px;margin-bottom:2px;
+  padding:7px 12px 7px 8px;border-radius:17px;
+}
+.row:not(.me) .vwrap{
+  background:var(--bub);border:1px solid var(--bub-line);border-top-left-radius:7px;
+  box-shadow:0 2px 10px rgba(10,15,30,.08);
+}
+.row.me .vwrap{
+  background:linear-gradient(145deg,var(--me),var(--me-2));border:1px solid transparent;
+  border-top-right-radius:7px;box-shadow:0 5px 18px var(--me-glow);
+}
+.vwrap .play{
+  width:34px;height:34px;flex:0 0 34px;border-radius:50%;cursor:pointer;
+  background:linear-gradient(140deg,var(--accent),var(--accent-2));border:none;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px var(--accent-glow);
+}
+.vwrap .play svg{width:14px;height:14px;fill:currentColor}
+.vwrap .bar{
+  flex:1;min-width:80px;height:4px;border-radius:2px;background:var(--pill);
+  position:relative;
+}
+/* 4px 高的条手指点不准：上下各撑 8px 做热区，视觉还是细的一条 */
+.vwrap .bar::after{content:'';position:absolute;left:-4px;right:-4px;top:-8px;bottom:-8px}
+.vwrap .bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);border-radius:2px}
+.vwrap .dur{font-size:12px;color:var(--dim);min-width:30px;font-variant-numeric:tabular-nums}
+.vwrap .txt{
+  font-size:12px;color:var(--accent);cursor:pointer;padding:3px 8px;border-radius:8px;
+  background:var(--accent-soft);white-space:nowrap;
+}
+.bub.hidden{display:none}
+.bub.show{display:block}
+.va{display:block;margin-top:7px;height:32px;width:210px;max-width:100%;border-radius:16px;background:var(--pill)}
+.va{margin-left:auto}
+.row.me .vwrap .bar{background:rgba(255,255,255,.22)}
+.row.me .vwrap .bar i{background:rgba(255,255,255,.92)}
+.row.me .vwrap .dur{color:rgba(255,255,255,.75)}
+.row.me .vwrap .txt{color:#fff;background:rgba(255,255,255,.16)}
+
+.timediv{
+  text-align:center;font-size:11px;color:var(--dimmer);margin:16px 0 14px;
+  letter-spacing:.3px;cursor:pointer;user-select:none;
+}
+.timediv:active{color:var(--dim)}
+.sys{text-align:center;color:var(--dimmer);font-size:12px;margin:20px 0;display:flex;align-items:center;gap:12px}
+.sys::before,.sys::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.typingRow{display:flex;align-items:center;gap:5px;padding:4px 0 12px 47px;color:var(--dim);font-size:12px}
+.typingRow .ttxt{margin-left:4px}
+.tdot{width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.35;animation:tb 1.2s infinite}
+.tdot:nth-child(2){animation-delay:.2s}
+.tdot:nth-child(3){animation-delay:.4s}
+@keyframes tb{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-2px)}}
+
+/* 发送状态：只挂在最新一条自己的消息下面 */
+.sendtag{
+  display:flex;align-items:center;justify-content:flex-end;gap:4px;
+  font-size:11px;color:var(--dim);margin-top:5px;padding-right:2px;
+  letter-spacing:.2px;
+}
+.sendtag svg{width:12px;height:12px;color:var(--accent)}
+.sendtag i{
+  width:5px;height:5px;border-radius:50%;background:var(--dimmer);
+  animation:pulse 1.4s ease-in-out infinite;
+}
+.sendtag.pending{color:var(--dim)}
+.sendtag{color:var(--dim)}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+
+/* ── 底部输入：悬浮大圆角卡片 ─────────────────────────────── */
+#composer{
+  position:absolute;left:0;right:0;bottom:0;z-index:8;
+  padding:0 10px calc(10px + var(--nav-inset,0px));
+  padding:0 10px calc(10px + max(env(safe-area-inset-bottom,0px),var(--nav-inset,0px)));
+  pointer-events:none;background:transparent;
+}
+#inputWrap,#replyBar,#pending{pointer-events:auto}
+#inputWrap{
+  position:relative;
+  background:var(--glass);
+  backdrop-filter:blur(24px) saturate(1.7);-webkit-backdrop-filter:blur(24px) saturate(1.7);
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:8px 10px 10px 16px;
+  box-shadow:var(--shadow),var(--inset-hi);
+  transition:border-color .18s ease,box-shadow .18s ease,background .25s ease;
+}
+#inputWrap:focus-within{
+  border-color:var(--accent-line);
+  box-shadow:var(--shadow),0 0 0 3px var(--accent-soft),var(--inset-hi);
+}
+#input{
+  display:block;width:100%;background:none;border:none;outline:none;color:var(--text);
+  font-size:15px;font-family:inherit;line-height:1.5;resize:none;
+  max-height:132px;min-height:30px;padding:9px 2px 3px;
+}
+#input::placeholder{color:var(--dimmer)}
+#input:disabled{color:var(--dimmer);-webkit-text-fill-color:var(--dimmer)}
+#toolRow{display:flex;align-items:center;gap:8px;margin-top:4px}
+.tool{
+  height:34px;border-radius:16px;border:1px solid var(--chip-line);
+  background:var(--chip-bg);color:var(--accent);
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:0 13px;font-size:13px;font-family:inherit;cursor:pointer;
+  transition:transform .12s ease,background .16s ease,opacity .15s;
+}
+.tool:active{transform:scale(.95)}
+.tool svg{width:16px;height:16px}
+#btnAt{width:34px;padding:0;font-size:15px;font-weight:600;letter-spacing:.5px}
+#btnImg:disabled,#btnAt:disabled{opacity:.4;cursor:not-allowed}
+#send{
+  width:42px;height:42px;flex:0 0 42px;border-radius:50%;border:none;cursor:pointer;
+  margin-left:auto;
+  background:linear-gradient(145deg,var(--accent),var(--accent-2));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 18px var(--accent-glow);
+  transition:opacity .15s ease,transform .12s ease,box-shadow .2s ease;
+}
+#send:active{transform:scale(.92)}
+#send:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+#send svg{width:18px;height:18px;margin-right:1px}
+
+#pending{display:none;padding:4px 2px 8px}
+#pending.on{display:block}
+#pending .pimg{position:relative;display:inline-block}
+#pending img{max-height:88px;border-radius:14px;border:1px solid var(--line);display:block}
+#pending .x{
+  position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+  background:#e5534b;color:#fff;font-size:12px;line-height:20px;text-align:center;
+  cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+#replyBar{
+  display:none;margin:2px 2px 8px;padding:7px 10px;border-radius:12px;
+  background:var(--accent-soft);border-left:3px solid var(--accent);
+  font-size:13px;color:var(--dim);
+}
+#replyBar.on{display:block}
+#replyBar .who{color:var(--accent);font-weight:500;margin-bottom:2px}
+#replyBar .tx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:78%}
+#replyBar .x{float:right;cursor:pointer;color:var(--dimmer);margin-left:8px;font-size:16px;line-height:1}
+
+.quote{
+  border-left:3px solid var(--line-strong);padding:4px 9px;margin-bottom:6px;
+  font-size:13px;color:var(--dim);background:var(--pill);border-radius:4px 10px 10px 4px;
+}
+.row.me .quote{border-left-color:rgba(255,255,255,.45);background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+
+#atMenu{
+  position:absolute;bottom:100%;left:0;margin-bottom:10px;background:var(--glass-strong);
+  backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);
+  border:1px solid var(--line);border-radius:16px;padding:6px;display:none;
+  box-shadow:var(--shadow);min-width:156px;z-index:30;
+}
+#atMenu.on{display:block}
+#atMenu div{padding:9px 12px;border-radius:10px;cursor:pointer;font-size:15px}
+#atMenu div:hover{background:var(--accent-soft)}
+.bub img{max-width:min(100%,210px);max-height:280px;border-radius:14px;display:block;margin-bottom:6px;object-fit:cover;object-position:center}
+.bub img.meme{max-width:118px;max-height:118px;border-radius:14px;object-fit:contain}
+.bub img.meme + br{display:none}
+.bub img.gone{display:none}
+.imgmiss{
+  display:inline-block;font-size:12px;color:var(--dimmer);background:var(--pill);
+  border:1px dashed var(--line-strong);border-radius:10px;padding:9px 13px;margin-bottom:6px;
+}
+
+/* 回到底部 */
+#toBottom{
+  position:absolute;right:16px;bottom:calc(var(--comp-h) + 10px);z-index:7;
+  width:42px;height:42px;border-radius:50%;cursor:pointer;
+  background:var(--glass-strong);border:1px solid var(--line);color:var(--dim);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shadow-soft);backdrop-filter:blur(16px);
+  opacity:0;transform:translateY(6px) scale(.92);pointer-events:none;
+  transition:opacity .18s ease,transform .18s ease;
+}
+#toBottom.on{opacity:1;transform:none;pointer-events:auto}
+#toBottom:active{transform:scale(.92)}
+#toBottom svg{width:18px;height:18px}
+
+/* 窄屏：侧栏变抽屉 */
+#back{display:none;width:32px;height:32px;align-items:center;justify-content:center;cursor:pointer;color:var(--dim);font-size:20px;margin-left:-6px}
+@media(max-width:760px){
+  #side{
+    position:absolute;inset:0 auto 0 0;z-index:20;transform:translateX(-100%);
+    transition:transform .24s cubic-bezier(.22,.61,.36,1);
+    width:84%;max-width:330px;box-shadow:none;
+  }
+  #side.open{transform:none;box-shadow:0 0 60px rgba(0,0,0,.45)}
+  #back{display:flex}
+  #chatHead{padding-left:12px}
+  #msgs{padding-left:12px;padding-right:12px}
+}
+
+/* ── 长按操作 / 弹窗 ─────────────────────────────────────── */
+#actions{
+  position:fixed;inset:0;background:var(--scrim);z-index:75;display:none;
+  align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+#actions.on{display:flex}
+#actions .sheet{
+  width:100%;max-width:480px;background:var(--glass-strong);
+  backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);
+  border-radius:22px 22px 0 0;
+  padding:10px 10px calc(18px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);
+  animation:up .2s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes up{from{transform:translateY(18px);opacity:.6}to{transform:none;opacity:1}}
+#actions .ai{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;
+  cursor:pointer;font-size:15px;color:var(--text);
+}
+#actions .ai:active{background:var(--pill)}
+#actions .ai svg{width:18px;height:18px;color:var(--dim);flex:0 0 18px}
+#actions .ai.danger{color:#e5534b}
+#actions .ai.danger svg{color:#e5534b}
+
+#dialog{
+  position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;
+  align-items:center;justify-content:center;padding:24px;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  opacity:0;visibility:hidden;transition:opacity .16s ease,visibility .16s ease;
+}
+#dialog.on{opacity:1;visibility:visible}
+#dialog .box{
+  width:100%;max-width:348px;background:var(--glass-strong);
+  backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);
+  border-radius:20px;padding:20px;border:1px solid var(--line);
+  box-shadow:var(--shadow);transform:scale(.96);transition:transform .16s ease;
+}
+#dialog.on .box{transform:none}
+#dialog .dt{font-size:15px;font-weight:600;margin-bottom:14px}
+#dialog input{
+  width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--text);font-size:15px;font-family:inherit;outline:none;
+}
+#dialog input:focus{border-color:var(--accent)}
+#dialog .acts{display:flex;gap:10px;margin-top:16px}
+#dialog .acts button{
+  flex:1;padding:11px;border-radius:10px;border:1px solid var(--line);
+  background:var(--pill);color:var(--text);font-size:15px;font-family:inherit;cursor:pointer;
+}
+#dialog .acts button.pri{
+  background:linear-gradient(145deg,var(--accent),var(--accent-2));
+  border-color:transparent;color:#fff;box-shadow:0 4px 14px var(--accent-glow);
+}
+#dialog .acts button:active{opacity:.78}
+
+#toast{
+  position:fixed;left:50%;bottom:calc(140px + var(--nav-inset,0px));
+  bottom:calc(140px + max(env(safe-area-inset-bottom,0px),var(--nav-inset,0px)));
+  transform:translateX(-50%) translateY(10px);
+  background:var(--toast);color:var(--toast-text);font-size:13px;
+  padding:10px 16px;border-radius:12px;z-index:90;opacity:0;
+  transition:opacity .2s,transform .2s;pointer-events:none;
+  max-width:80vw;text-align:center;border:1px solid var(--line-strong);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 10px 30px rgba(0,0,0,.28);
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 设置 ─────────────────────────────────────────────────── */
+#settings{
+  position:fixed;inset:0;background:var(--scrim);z-index:70;display:flex;
+  align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  opacity:0;visibility:hidden;transition:opacity .16s ease,visibility .16s ease;
+}
+#settings.on{opacity:1;visibility:visible}
+#settings .sheet{
+  width:100%;max-width:430px;max-height:84vh;overflow-y:auto;
+  background:var(--glass-strong);
+  backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);
+  border-radius:22px;padding:22px 22px 24px;border:1px solid var(--line);
+  box-shadow:var(--shadow);transform:scale(.97);transition:transform .16s ease;
+}
+#settings.on .sheet{transform:none}
+#settings .sheet::-webkit-scrollbar{width:6px}
+#settings .sheet::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:3px}
+#settings h3{font-size:16px;font-weight:600;margin-bottom:16px;letter-spacing:.2px}
+#settings .lbl{
+  font-size:11px;color:var(--dim);margin:18px 0 10px;letter-spacing:.6px;
+  text-transform:uppercase;display:flex;align-items:center;gap:10px;
+}
+#settings .lbl::after{content:'';flex:1;height:1px;background:var(--line)}
+#settings .close{float:right;color:var(--dim);cursor:pointer;line-height:1;margin-top:2px}
+#settings .close:active{opacity:.6}
+
+/* 明暗模式：三档分段 */
+.seg{
+  display:flex;gap:4px;padding:4px;border-radius:14px;
+  background:var(--pill);border:1px solid var(--line);
+}
+.seg button{
+  flex:1;padding:9px 0;border-radius:10px;border:none;background:transparent;
+  color:var(--dim);font-size:13px;font-family:inherit;cursor:pointer;
+  transition:background .16s ease,color .16s ease,box-shadow .16s ease;
+}
+.seg button.on{
+  background:var(--accent-soft);color:var(--accent);font-weight:500;
+  box-shadow:inset 0 0 0 1px var(--accent-line);
+}
+
+.themes{display:flex;gap:10px}
+.themes .t{
+  width:46px;height:46px;flex:0 0 46px;border-radius:14px;cursor:pointer;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(10,15,30,.18);
+  transition:transform .12s ease,box-shadow .15s ease;
+}
+.themes .t:active{transform:scale(.95)}
+.themes .t.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent),0 6px 16px rgba(10,15,30,.2)}
+.themes .t svg{
+  width:18px;height:18px;color:#fff;opacity:0;transform:scale(.7);
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));
+  transition:opacity .15s ease,transform .15s ease;
+}
+.themes .t.on svg{opacity:1;transform:none}
+
+#moodBox{margin-top:2px}
+#moodBox .mcard{
+  background:var(--pill);border-radius:14px;padding:12px 14px 10px;margin-bottom:9px;
+  border:1px solid var(--line);
+}
+#moodBox .mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+#moodBox .mname{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+#moodBox .mname i{width:8px;height:8px;border-radius:50%;display:inline-block}
+#moodBox .mtop{font-size:11px;color:var(--dim)}
+#moodBox .mrow{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+#moodBox .mrow:last-child{margin-bottom:0}
+#moodBox .mlbl{width:40px;font-size:12px;color:var(--dim);flex:0 0 40px}
+#moodBox .mtrack{flex:1;height:4px;border-radius:2px;background:var(--pill);overflow:hidden}
+#moodBox .mfill{height:100%;border-radius:2px;transition:width .5s ease}
+#moodBox .mval{width:22px;font-size:11px;color:var(--dimmer);text-align:right;font-variant-numeric:tabular-nums;flex:0 0 22px}
+#moodBox .mval.hot{color:var(--text);font-weight:500}
+#settings button.act{
+  width:100%;padding:11px;border-radius:12px;border:1px solid var(--line);
+  background:var(--pill);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;
+}
+#settings button.act:active{opacity:.75}
+#settings .nets{display:flex;gap:9px}
+#settings .nchip{
+  flex:1;padding:11px 10px;border-radius:12px;border:1px solid var(--line);
+  background:var(--pill);color:var(--text);font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;gap:3px;align-items:flex-start;transition:all .15s;
+}
+#settings .nchip b{font-size:13px;font-weight:500}
+#settings .nchip span{font-size:11px;color:var(--dim)}
+#settings .nchip.on{border-color:var(--accent);background:var(--accent-soft)}
+#settings .nchip:active{opacity:.7}
+#settings .nettip{font-size:12px;color:var(--dimmer);margin-top:7px;line-height:1.5}
+#settings .acts{display:flex;flex-direction:column;gap:8px}
+#settings .arow{
+  display:flex;align-items:center;gap:11px;width:100%;padding:12px 14px;
+  border-radius:12px;border:1px solid var(--line);background:var(--pill);
+  color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;text-align:left;
+  transition:background .15s;
+}
+#settings .arow svg{color:var(--dim);flex:0 0 17px}
+#settings .arow:active{background:var(--accent-soft)}
+#settings .tip{font-size:12px;color:var(--dimmer);margin-top:10px;line-height:1.6}
+
+/* ── 大图预览 / 搜索 ─────────────────────────────────────── */
+#viewer{
+  position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:60;display:flex;
+  align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease;
+}
+#viewer.on{opacity:1;visibility:visible}
+#viewer img{max-width:100%;max-height:100%;border-radius:10px;object-fit:contain;transform:scale(.97);transition:transform .18s ease}
+#viewer.on img{transform:none}
+#viewer .close{position:absolute;top:16px;right:18px;color:#fff;cursor:pointer;opacity:.85;display:flex}
+#viewer .save{position:absolute;bottom:32px;right:22px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer}
+#viewer .save:active{background:rgba(255,255,255,.28)}
+#viewer .save[hidden]{display:none}
+#searchBar{
+  display:flex;max-height:0;overflow:hidden;padding:0 16px;
+  background:transparent;gap:8px;align-items:center;
+  opacity:0;transition:max-height .2s ease,opacity .2s ease,padding .2s ease;
+}
+#searchBar.on{max-height:56px;padding:8px 16px 12px;opacity:1}
+#searchBar input{
+  flex:1;background:var(--pill);border:1px solid var(--line);border-radius:11px;
+  padding:9px 12px;color:var(--text);font-size:15px;font-family:inherit;outline:none;
+}
+#searchBar input:focus{border-color:var(--accent-line)}
+#searchBar .cnt{font-size:12px;color:var(--dim);white-space:nowrap}
+#searchBar .x{color:var(--dim);cursor:pointer;font-size:19px;padding:0 4px;line-height:1}
+.mark{background:var(--accent-soft);border-radius:3px;padding:0 1px;box-shadow:inset 0 -6px 0 var(--accent-soft)}
+#mask{display:block;position:fixed;inset:0;background:var(--scrim);z-index:15;opacity:0;pointer-events:none;transition:opacity .22s ease}
+#mask.on{opacity:1;pointer-events:auto}
+
+/* 首次启动：数据没摆好之前别露出来，避免先闪一版再跳 */
+html.boot #msgs{opacity:0}
+
+/* 新消息入场：只给真的新到的那些做 */
+.row.fresh{animation:rowIn .24s cubic-bezier(.22,.61,.36,1)}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* 不支持毛玻璃就退回实色，别糊成一团 */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  #topbar,#side,#inputWrap,#settings .sheet,#actions .sheet,#dialog .box,#atMenu,#toast{
+    background:var(--panel-solid);
+  }
+}
+
+@media (min-width:1280px){
+  #msgs{padding-left:calc(50% - 460px);padding-right:calc(50% - 460px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .row.fresh{animation:none}
+  #settings,#dialog,#viewer,#mask,#searchBar,#inputWrap,#toBottom,#side{transition:none}
+  .sendtag i{animation:none}
+}
+
+/* ── 输入卡内部重排：输入在上、工具行在下，DOM 顺序保持原样 ── */
+#inputWrap{display:flex;flex-wrap:wrap;align-items:center;row-gap:6px;max-width:880px;margin:0 auto}
+#input{order:1;flex:1 1 100%;width:100%}
+#btnImg{order:2}
+#btnAt{order:3}
+#send{order:4}
+#replyBar{
+  max-width:880px;margin:0 auto 8px;padding:9px 12px;border-radius:16px;
+  background:var(--glass-strong);border:1px solid var(--line);border-left:3px solid var(--accent);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:var(--shadow-soft);
+}
+#pending{max-width:880px;margin:0 auto 8px}
+
+/* ── 触控热区：视觉尺寸不动，可点范围补到 44/48 ─────────── */
+#headGear,#headSearch,#back,#settings .close,#searchBar .x,#replyBar .x,#send,.tool{position:relative}
+#headGear::before{content:'';position:absolute;top:-5px;bottom:-5px;left:-5px;right:0}
+#headSearch::before{content:'';position:absolute;top:-5px;bottom:-5px;left:0;right:-5px}
+#back::before{content:'';position:absolute;top:-6px;bottom:-6px;left:-6px;right:-2px}
+#settings .close::before,#searchBar .x::before{content:'';position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
+#replyBar .x::before{content:'';position:absolute;left:50%;top:50%;width:40px;height:40px;transform:translate(-50%,-50%)}
+#send::before{content:'';position:absolute;left:50%;top:50%;width:48px;height:48px;transform:translate(-50%,-50%)}
+#toBottom::before{content:'';position:absolute;left:50%;top:50%;width:48px;height:48px;transform:translate(-50%,-50%)}
+.tool::before{content:'';position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%)}
+
+/* 发送中：按钮转圈锁死，防连点 */
+#send.loading{pointer-events:none}
+#send.loading svg{opacity:0}
+#send.loading::after{
+  content:'';position:absolute;left:calc(50% - 10px);top:calc(50% - 10px);
+  width:16px;height:16px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 标题单行截断，长群名不顶掉右侧按钮 */
+#chatHead .head-main{flex:1;min-width:0}
+#chatHead .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv .nm{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv .nm .tag{flex:0 0 auto}
+#settings h3,#dialog .dt{text-wrap:balance}
+
+</style>
+<script>
+/* 主题必须在首帧之前定下来：先按本地偏好和系统状态写 data-scheme，
+   样式表一上来就是对的，不会先黑一下再变白。 */
+(function(){
+  try{
+    var m = localStorage.getItem('nchat_mode') || 'auto';
+    var p = localStorage.getItem('nchat_theme') || 'night';
+    if (p === 'light') { p = 'night'; m = 'light';
+      localStorage.setItem('nchat_theme', 'night'); localStorage.setItem('nchat_mode', 'light'); }
+    var d;
+    if (m === 'dark') d = true;
+    else if (m === 'light') d = false;
+    else {
+      try {
+        d = (window.NChat && NChat.systemDark) ? !!Number(NChat.systemDark())
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } catch(e){ d = true; }
+    }
+    var r = document.documentElement;
+    r.className += ' boot';
+    r.setAttribute('data-scheme', d ? 'dark' : 'light');
+    r.setAttribute('data-palette', p);
+    r.style.colorScheme = d ? 'dark' : 'light';
+    try {
+      if (window.NChat && NChat.insets) {
+        var v = String(NChat.insets()).split(',');
+        if (+v[0]) r.style.setProperty('--status-inset', (+v[0]) + 'px');
+        if (+v[1]) r.style.setProperty('--nav-inset', (+v[1]) + 'px');
+      }
+    } catch(e){}
+  }catch(e){}
+  // 万一主脚本挂了，6 秒后也要把列表露出来，别留个空屏
+  setTimeout(function(){ document.documentElement.classList.remove('boot') }, 6000);
+})();
+</script>
+</head>
+<body>
+<div id="toast"></div>
+<div id="actions">
+  <div class="sheet" id="actionList"></div>
+</div>
+<div id="dialog">
+  <div class="box">
+    <div class="dt" id="dlgTitle">改个名字</div>
+    <input id="dlgInput" autocomplete="off">
+    <div class="acts">
+      <button id="dlgCancel">取消</button>
+      <button class="pri" id="dlgOk">确定</button>
+    </div>
+  </div>
+</div>
+<div id="settings">
+  <div class="sheet">
+    <span class="close" id="setClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></span>
+    <h3>设置</h3>
+
+    <div class="lbl">外观</div>
+    <div class="seg" id="modeSeg">
+      <button data-mode="auto">跟随系统</button>
+      <button data-mode="light">浅色</button>
+      <button data-mode="dark">深色</button>
+    </div>
+
+    <div class="lbl">配色</div>
+    <div class="themes" id="themeList"></div>
+
+    <div class="lbl">情绪（七维，每人一份）</div>
+    <div id="moodBox"></div>
+
+    <div class="lbl">连接方式</div>
+    <div class="nets" id="netSwitch">
+      <button class="nchip" data-host="">
+        <b>地址</b><span>出门也能连</span>
+      </button>
+    </div>
+    <div class="nettip" id="netTip"></div>
+
+    <div class="lbl">数据</div>
+    <div class="acts">
+      <button class="arow" id="btnBackup">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <span>备份到电脑</span>
+      </button>
+      <button class="arow" id="btnServer">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18"/></svg>
+        <span>服务器地址</span>
+      </button>
+    </div>
+    <div class="tip" id="setTip"></div>
+  </div>
+</div>
+<div id="viewer"><span class="close"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></span><img alt=""><span class="save" id="viewerSave" title="保存到手机相册" hidden><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg></span></div>
+<div id="app">
+  <aside id="side">
+    <header><span>群聊</span><span class="dot" id="healthDot" title="服务状态"></span></header>
+    <div id="convs"></div>
+  </aside>
+  <div id="mask"></div>
+  <main id="main">
+    <div id="topbar">
+    <div id="chatHead">
+      <div id="back">‹</div>
+      <div class="ava g" id="headAva" style="width:34px;height:34px;flex:0 0 34px;border-radius:50%"></div>
+      <div class="head-main">
+        <div class="t" id="headTitle">群聊</div>
+        <div class="s" id="headSub">三人都在</div>
+      </div>
+      <div id="headGear" title="设置"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      <div id="headSearch" title="搜索"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+    </div>
+    <div id="searchBar">
+      <input id="searchInput" placeholder="搜这个会话里的消息…" autocomplete="off">
+      <span class="cnt" id="searchCnt"></span>
+      <span class="x" id="searchClose">×</span>
+    </div>
+    </div>
+    <div id="msgs"></div>
+    <button id="toBottom" title="回到最新"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div id="composer">
+      <div id="replyBar"><span class="x" id="replyClose">×</span><div class="who"></div><div class="tx"></div></div>
+      <div id="pending"></div>
+      <div id="inputWrap">
+        <button id="btnImg" class="tool" title="发图片">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>图片</span>
+        </button>
+        <button id="btnAt" class="tool" title="@ 谁">@</button>
+        <textarea id="input" rows="1" placeholder="发消息…"></textarea>
+        <button id="send" title="发送">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9z"/></svg>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/** 出错时把信息记在隐藏容器里，排查时可以 dump DOM 看，不打扰界面。 */
+function recordError(kind, msg, where){
+  try {
+    var box = document.getElementById('errBox') || (function(){
+      var d = document.createElement('div')
+      d.id = 'errBox'
+      d.style.display = 'none'
+      document.body.appendChild(d)
+      return d
+    })()
+    box.textContent += kind + '|' + msg + '|' + where + '\n'
+  } catch (e) {}
+}
+window.onerror = function(m, src, ln){ recordError('ERR', m, 'line' + ln) }
+window.addEventListener('unhandledrejection', function(e){
+  var r = e.reason || {}
+  recordError('REJ', r.message || String(r), (r.stack || '').split('\n')[1] || '')
+})
+const AVATAR = { group:'群', role1:'一', role2:'二', role3:'三' }
+const CLS = { group:'g', role1:'a', role2:'y', role3:'x' }
+let state = null, cur = 'group', lastSeq = {}, polling = null, sending = false
+let online = true        // 连不连得上电脑。探测失败就转纯本地，输入框锁掉
+let syncing = false      // 正在补历史，别并发跑两份
+let refreshing = false   // 上一轮还没回来就别叠上去
+let failCount = 0        // 连续失败几次才判定离线，别被一次抖动骗了
+let metaFull = false     // 本地是不是已经有一份完整历史（决定 archive 从 0 还是从尾巴问）
+let seenMax = {}         // 每个会话已经画到第几条。刷新时拿它判断这一屏要不要重建
+let seenDlv = {}         // 每个会话的送达进度，变了要重画那行小字
+let switchingId = ''     // 正在加载哪个会话，别让轮询插进来抢渲染
+let convSig = ''         // 会话列表的指纹，没变就不重碰 DOM
+let pendingImage = ''   // 待发送的图片文件名
+let pendingReply = 0    // 正在引用哪一条的 seq
+let stickBottom = true  // 是不是贴着底部。往上翻历史时不该被新消息拽回来
+let renderedSig = ''    // 上一帧画的是哪个会话、多少条、尾巴是谁
+let booting = true      // 启动阶段：先别让轮询插进来重画
+let revealed = false    // 首屏是否已经露出来
+
+/* 自定义：群名、每个人的昵称和头像字符，都存在浏览器本地。
+   服务端不认识这些东西，纯前端覆盖，改坏了清缓存就回到默认。 */
+let custom = (() => {
+  try { return JSON.parse(localStorage.getItem('chat_custom') || '{}') } catch { return {} }
+})()
+function saveCustom() { localStorage.setItem('chat_custom', JSON.stringify(custom)) }
+function nameOf(id, fallback) {
+  if (id === 'group') return custom.groupName || fallback
+  return custom.names?.[id] || fallback
+}
+function avatarOf(id) {
+  if (id === 'group') return custom.groupAva || '群'
+  return custom.avars?.[id] || AVATAR[id] || '?'
+}
+/** 内置头像：统一线性风格的白描，比文字字符耐看。 */
+const SEND_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>'
+
+const AVA_SVG = {
+  role1: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13c0-3.3 3.6-6 8-6s8 2.7 8 6-3.6 5-8 5-8-1.7-8-5z"/><path d="M19 11c1.5-.6 2.5.4 2 2-.4 1.2-1.6 1.6-2.6 1.2"/><path d="M8 4.5c0-1.2 1-2 2-2"/><circle cx="8.5" cy="12" r=".6" fill="currentColor" stroke="none"/></svg>',
+  role2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9 4 4l4.2 2.4A8 8 0 0 1 12 6a8 8 0 0 1 3.8.4L20 4l-1 5"/><path d="M4.5 12a7.5 7.5 0 0 0 15 0"/><circle cx="9" cy="12" r=".6" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r=".6" fill="currentColor" stroke="none"/><path d="M12 14.5v1"/></svg>',
+  role3: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9 4 4l4.2 2.4A8 8 0 0 1 12 6a8 8 0 0 1 3.8.4L20 4l-1 5"/><path d="M4.5 12a7.5 7.5 0 0 0 15 0"/><path d="M9 11.5h2M13 11.5h2"/><path d="M10 15h4"/></svg>',
+  group: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19a4 4 0 0 1 5.5-3.7"/></svg>',
+}
+
+/** 头像图：本地有走 blob，在线走直连（顺手存一份），离线又没有就退回内置 SVG。 */
+function avatarSrc(path) {
+  if (!path) return ''
+  const u = blobUrls.get(path)
+  if (u) return u
+  if (online) { wantMedia(path); return apiBase() + path }
+  return ''
+}
+
+/** 头像是图片路径就用 img，否则用内置 SVG。 */
+function avaHtml(id, cls, size) {
+  const v = avatarOf(id)
+  const st = size ? ' style="width:' + size + 'px;height:' + size + 'px;flex:0 0 ' + size + 'px"' : ''
+  if (typeof v === 'string' && v.startsWith('/uploads/')) {
+    const src = avatarSrc(v)
+    if (src) return '<div class="ava ' + cls + '"' + st + '><img src="' + src + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></div>'
+  }
+  return '<div class="ava ' + cls + '"' + st + '>' + (AVA_SVG[id] || esc(v)) + '</div>'
+}
+
+/**
+ * 服务器地址。app 里页面是壳自己给的（http://nchat.local），
+ * 接口得打回电脑，所以地址从原生层要；浏览器直连时就是当前 origin。
+ */
+function apiBase() {
+  try {
+    if (window.NChat && typeof NChat.server === 'function') {
+      const s = String(NChat.server() || '').trim()
+      if (s) return s.replace(/\/+$/, '')
+    }
+  } catch (e) {}
+  return location.origin
+}
+
+function api(path, opts) {
+  return fetch(apiBase() + path, opts).then(r => r.json())
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/** 列表里的图统一成 1:1 / 4:3 / 16:9 三档，挑最接近原图比例的一档，cover 裁切。 */
+function imageBox(dim){
+  const W = 210
+  const r = (dim && dim.w && dim.h) ? dim.w / dim.h : 4 / 3
+  const cands = [16 / 9, 4 / 3, 1, 3 / 4]
+  let best = 4 / 3, bestD = 1e9
+  for (const c of cands) {
+    const d = Math.abs(Math.log(r / c))
+    if (d < bestD) { bestD = d; best = c }
+  }
+  const base = dim ? Math.min(W, dim.w) : W
+  const h = Math.min(280, Math.round(base / best))
+  return { w: Math.round(base), h: Math.round(h), pos: best < 0.9 ? 'top' : 'center' }
+}
+
+/** 图片地址：表情包走 /memes/，上传的图走 /uploads/ */
+function imgUrl(v){
+  if (typeof v !== 'string' || v === '') return ''
+  if (v.startsWith('meme:')) {
+    const p = v.slice(5).split('/')
+    return '/memes/' + encodeURIComponent(p[0]) + '/' + encodeURIComponent(p[1] || '')
+  }
+  return '/uploads/' + encodeURIComponent(v)
+}
+
+/** 引用的那条是什么内容，截一小段显示。 */
+function quoteOf(seq){
+  const m = (state?.messages?.[cur] || []).find(x => x.seq === Number(seq))
+  if (!m) return ''
+  if (m.recalled) return '一条已撤回的消息'
+  const who = m.from === 'user' ? '你' : nameOf(m.from, m.from)
+  const body = String(m.text ?? '') || (m.image ? '[图片]' : '')
+  return who + '：' + body.slice(0, 26)
+}
+
+function fmtTime(ts){
+  const d = new Date(ts), n = new Date()
+  const sameDay = d.toDateString() === n.toDateString()
+  const hm = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')
+  return sameDay ? hm : `${d.getMonth()+1}/${d.getDate()} ${hm}`
+}
+
+const WEEKDAY = ['日','一','二','三','四','五','六']
+/** 点时间戳展开的完整写法：年月日 + 星期 + 时分。 */
+function fmtFull(ts){
+  const d = new Date(ts)
+  const hm = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+WEEKDAY[d.getDay()]+' '+hm
+}
+
+/** 哪些时间点被点开过。重渲染后要还原，不然一刷新就缩回去了。 */
+const expandedTimes = new Set()
+
+function renderConvs(force){
+  const el = document.getElementById('convs')
+  if (!state) return
+  // 列表内容没变就别碰 DOM。每 1.6 秒重建一次会把长按计时节流掉，
+  // 手机侧栏滚动位置也会被重置。
+  const sig = state.convs.map(c => {
+    const arr = state.messages[c.id] || []
+    const t = arr.length ? arr[arr.length - 1] : null
+    return c.id + '|' + (t ? t.seq : 0) + '|' + (t ? String(t.text || '').slice(0, 12) : '') +
+      '|' + (t && t.image ? 1 : 0) + '|' + (t && t.audio ? 1 : 0)
+  }).join('~') + '#' + cur + '#' + JSON.stringify(custom)
+  if (!force && sig === convSig) return
+  convSig = sig
+
+  el.innerHTML = state.convs.map(c => {
+    const msgs = state.messages[c.id] || []
+    const last = msgs[msgs.length-1]
+    const pvText = String(last?.text ?? '').trim()
+    let pv = '还没有消息'
+    if (last) {
+      if (last.image) {
+        pv = String(last.image).startsWith('meme:') ? '[表情]' : '[图片]'
+      } else if (last.audio) {
+        pv = '[语音] ' + pvText.slice(0, 22)
+      } else {
+        pv = (last.from === 'user' ? '你：' : '') + pvText.slice(0, 28)
+      }
+    }
+    const on = c.id === cur ? ' on' : ''
+    const tag = c.kind === 'group' ? '<span class="tag">群</span>' : ''
+    const rid = c.id.replace('dm:','')
+    return `<div class="conv${on}" data-id="${c.id}">
+      ${avaHtml(c.kind==='group'?'group':rid, CLS[rid])}
+      <div class="meta"><div class="nm">${esc(nameOf(c.kind==='group'?'group':rid, c.name))}${tag}</div><div class="pv">${esc(pv)}</div></div>
+    </div>`
+  }).join('')
+  el.querySelectorAll('.conv').forEach(n => {
+    n.onclick = () => { switchTo(n.dataset.id); closeSide() }
+    const ava = n.querySelector('.ava')
+    if (ava) ava.onclick = (e) => { e.stopPropagation(); renameAvatar(n.dataset.id) }
+    // 长按改名
+    let timer = null
+    n.onpointerdown = () => { timer = setTimeout(() => { renameConv(n.dataset.id); timer = null }, 650) }
+    n.onpointerup = n.onpointercancel = n.onpointerleave = () => { if (timer) { clearTimeout(timer); timer = null } }
+  })
+}
+
+/**
+ * 重渲染时保住阅读位置：记下视口里第一条可见消息、以及它离顶边多远，
+ * 渲染完再按这个偏移把同一条消息放回原处。
+ * 只按「距底距离」算不够准 —— 图片撑开、时间分隔增减都会让高度变。
+ */
+function anchorOf(el) {
+  const boxTop = el.getBoundingClientRect().top
+  const rows = el.querySelectorAll('.row')
+  for (let i = 0; i < rows.length; i++) {
+    const off = rows[i].getBoundingClientRect().top - boxTop
+    if (off >= -4) return { seq: rows[i].dataset.seq, off: off }
+  }
+  return null
+}
+
+function restoreAnchor(el, a) {
+  if (!a) return false
+  const n = el.querySelector('.row[data-seq="' + a.seq + '"]')
+  if (!n) return false
+  const off = n.getBoundingClientRect().top - el.getBoundingClientRect().top
+  el.scrollTop += (off - a.off)
+  return true
+}
+
+function renderMsgs(){
+  const el = document.getElementById('msgs')
+  const all = state.messages[cur] || []
+  const msgs = all.filter(m => m.text || m.image || m.audio || m.recalled)
+
+  // 记住现在的视口。贴底就继续贴底，否则记住锚点那条消息 ——
+  // 往前补历史或图片撑开时，位置都不会漂。
+  const prevTop = el.scrollTop
+  const prevHeight = el.scrollHeight
+  const atBottom = prevHeight - prevTop - el.clientHeight < 90
+  const keepAtBottom = stickBottom || atBottom
+  const anchor = keepAtBottom ? null : anchorOf(el)
+
+  if (!msgs.length) {
+    el.innerHTML = '<div class="sys">还没有消息，说句话试试</div>'
+    seenMax[cur] = 0
+    return
+  }
+  // 只有比上次画到的更晚的才算新消息，不然 300 条一起做入场动画，卡
+  const prevMax = seenMax[cur]
+  let html = '', prevFrom = null, prevAt = 0
+  // 发送状态只挂在整屏最后一条上：后面已经有回复了，就不必再提醒发没发出去
+  const tailSeq = msgs[msgs.length - 1].seq
+  const dlv = state.delivered?.[cur] || 0
+  for (const m of msgs) {
+    // 和上一条隔超过 5 分钟就插一个居中的时间，同一段对话里不重复显示
+    if (!prevAt || m.at - prevAt > 5 * 60 * 1000) {
+      html += `<div class="timediv" data-at="${m.at}" title="点一下看完整日期">${expandedTimes.has(m.at) ? fmtFull(m.at) : fmtTime(m.at)}</div>`
+      // 时间断开了就是新的一段。不把 prevFrom 清掉的话，同一个人隔半小时
+      // 再开口会被当成"接着说"，头像藏着不出，看着像没头没尾
+      prevFrom = null
+    }
+    prevAt = m.at
+    const me = m.from === 'user'
+    const who = me ? '你' : nameOf(m.from, state.roles.find(r=>r.id===m.from)?.name || m.from)
+    const av = me ? '你' : avatarOf(m.from)
+    // 头像图先算好：离线又没缓存时给空串，下面退回内置 SVG
+    const mySrc = me ? avatarSrc(custom.myAva || '') : ''
+    const otherSrc = me || !String(av).startsWith('/uploads/') ? '' : avatarSrc(av)
+    if (prevFrom !== null && prevFrom !== m.from) html += ''
+    const same = prevFrom === m.from && !m.replyTo
+    const fresh = prevMax !== undefined && m.seq > prevMax
+    html += `<div class="row${me?' me':''}${same?' same':''}${fresh?' fresh':''}" data-seq="${m.seq}">
+      ${me
+        ? (mySrc
+            ? '<div class="av me" data-me="1" style="overflow:hidden"><img src="' + mySrc + '" style="width:100%;height:100%;object-fit:cover"></div>'
+            : '<div class="av me" data-me="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></div>')
+        : (otherSrc
+            ? '<div class="av"><img src="' + otherSrc + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></div>'
+            : '<div class="av av-' + m.from + '">' + (AVA_SVG[m.from] || esc(av)) + '</div>')}
+      <div class="b">
+        <div class="who">${esc(who)}</div>
+        ${m.replyTo ? '<div class="quote" data-q="' + m.replyTo + '">引用 ' + (quoteOf(m.replyTo) || '一条消息') + '</div>' : ''}
+        ${m.audio ? '<div class="vwrap" data-seq="' + m.seq + '"></div>' : ''}
+        <div class="bub${m.audio ? ' hidden' : ''}"${m.recalled ? ' style="opacity:.55;font-style:italic"' : ''}>${m.recalled ? '（撤回了一条消息）' : esc(m.text)}</div>
+        ${(!m.recalled && m.from === 'user' && m.seq === tailSeq)
+          ? (dlv >= m.seq
+              ? '<div class="sendtag">' + SEND_CHECK + '已发送</div>'
+              : '<div class="sendtag pending"><i></i>发送中</div>')
+          : ''}
+      </div>
+    </div>`
+    prevFrom = m.from
+  }
+  el.innerHTML = html
+
+  // 图片和语音都用 DOM 直接插 —— 这层的字符串模板对 <img>/<audio> 求值失效
+  for (const m of msgs) {
+    if (m.image && !m.recalled) {
+      const box = el.querySelector('.row[data-seq="' + m.seq + '"] .bub')
+      if (box) {
+        const im = document.createElement('img')
+        im.alt = ''
+        const isMeme = String(m.image).startsWith('meme:')
+        const path = imgUrl(m.image)
+        if (isMeme) im.className = 'meme'
+        // 缓存过的图知道原始尺寸，先把位置占住。加载完高度不变，
+        // 列表就不会因为图片撑开而整体往上顶。
+        const dim = mediaDim.get(path)
+        if (isMeme) {
+          // 表情包按 118 封顶先算好尺寸，别等解码完再把整列顶下去
+          if (dim) {
+            const k = Math.min(1, 118 / Math.max(dim.w, dim.h))
+            im.style.width = Math.round(dim.w * k) + 'px'
+            im.style.height = Math.round(dim.h * k) + 'px'
+          } else {
+            im.style.width = '118px'
+            im.style.height = '118px'
+          }
+        } else {
+          const box = imageBox(dim)
+          im.style.width = box.w + 'px'
+          im.style.height = box.h + 'px'
+          im.style.objectPosition = box.pos
+        }
+        im.style.cursor = 'zoom-in'
+        im.onclick = () => openViewer(im.src)
+        box.insertBefore(im, box.firstChild)
+        void paintImage(im, path)
+      }
+    }
+  }
+
+  // 语音条：QQ 那种，圆钮 + 进度 + 时长，文字默认收起，点「转文字」才显示
+  for (const m of msgs) {
+    if (!m.audio) continue
+    const row = el.querySelector('.row[data-seq="' + m.seq + '"]')
+    if (!row) continue
+    const wrap = row.querySelector('.vwrap')
+    const bub = row.querySelector('.bub')
+    if (!wrap) continue
+
+    const audio = new Audio()
+    // metadata 而不是 none：进度条要知道总时长才能点着跳
+    audio.preload = 'metadata'
+
+    const btn = document.createElement('button')
+    btn.className = 'play'
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+
+    const bar = document.createElement('div')
+    bar.className = 'bar'
+    const fill = document.createElement('i')
+    bar.appendChild(fill)
+
+    const dur = document.createElement('div')
+    dur.className = 'dur'
+    dur.textContent = '0:00'
+
+    const txtBtn = document.createElement('div')
+    txtBtn.className = 'txt'
+    txtBtn.textContent = '转文字'
+
+    btn.onclick = () => {
+      if (audio.paused) {
+        void audio.play()
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+      } else {
+        audio.pause()
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+      }
+    }
+    audio.onended = () => {
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+      fill.style.width = '0%'
+    }
+    audio.onloadedmetadata = () => {
+      const d = Math.round(audio.duration || 0)
+      dur.textContent = Math.floor(d / 60) + ':' + String(d % 60).padStart(2, '0')
+    }
+    audio.ontimeupdate = () => {
+      if (!audio.duration) return
+      fill.style.width = Math.min(100, (audio.currentTime / audio.duration) * 100) + '%'
+    }
+
+    // 进度条：点一下跳过去，按住左右滑就是拖。靠后端真的回 206 才成立。
+    let seeking = false
+    const seekTo = (clientX) => {
+      const d = Number(audio.duration)
+      if (!Number.isFinite(d) || d <= 0) return
+      const r = bar.getBoundingClientRect()
+      if (r.width <= 0) return
+      const k = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
+      audio.currentTime = k * d
+      fill.style.width = (k * 100) + '%'
+    }
+    bar.style.cursor = 'pointer'
+    bar.style.touchAction = 'none'
+    bar.onpointerdown = (e) => {
+      e.preventDefault()
+      seeking = true
+      try { bar.setPointerCapture(e.pointerId) } catch (err) {}
+      seekTo(e.clientX)
+    }
+    bar.onpointermove = (e) => { if (seeking) seekTo(e.clientX) }
+    bar.onpointerup = () => { seeking = false }
+    bar.onpointercancel = () => { seeking = false }
+    txtBtn.onclick = () => {
+      if (!bub) return
+      const hidden = bub.classList.contains('hidden')
+      bub.classList.toggle('hidden', !hidden)
+      bub.classList.toggle('show', hidden)
+      txtBtn.textContent = hidden ? '收起' : '转文字'
+    }
+
+    wrap.appendChild(btn)
+    wrap.appendChild(bar)
+    wrap.appendChild(dur)
+    wrap.appendChild(txtBtn)
+
+    // 语音地址是异步定的：本地有就用 blob，在线就直连并顺手存一份，离线又没缓存就只能看文字
+    void (async () => {
+      const p = '/audio/' + encodeURIComponent(m.audio)
+      const u = await mediaBlobUrl(p)
+      if (u) { audio.src = u; return }
+      if (online) { audio.src = apiBase() + p; wantMedia(p); return }
+      btn.disabled = true
+      dur.textContent = '离线'
+      bar.style.opacity = '.35'
+    })()
+  }
+
+  // 点自己的头像 → 换我自己的头像
+  el.querySelectorAll('.av[data-me="1"]').forEach(a => {
+    a.style.cursor = 'pointer'
+    a.onclick = () => pickMyAvatar()
+  })
+
+  // 长按消息：复制 / 撤回
+  el.querySelectorAll('.row').forEach(row => {
+    let timer = null
+    const seq = Number(row.dataset.seq)
+    const start = () => {
+      timer = setTimeout(() => {
+        const m = (state?.messages?.[cur] || []).find(x => x.seq === seq)
+        if (!m || m.recalled) return
+        showActions(seq)
+      }, 520)
+    }
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null } }
+    row.onpointerdown = start
+    row.onpointerup = cancel
+    row.onpointercancel = cancel
+    row.onpointerleave = cancel
+  })
+
+  // 时间戳点一下展开完整日期，再点收回。展开过哪些存在 expandedTimes，重渲染不丢
+  el.querySelectorAll('.timediv').forEach(n => {
+    const at = Number(n.dataset.at)
+    n.onclick = () => {
+      if (expandedTimes.has(at)) {
+        expandedTimes.delete(at)
+        n.textContent = fmtTime(at)
+      } else {
+        expandedTimes.add(at)
+        n.textContent = fmtFull(at)
+      }
+    }
+  })
+
+  // 正在输入做成消息流末尾的一条，不占固定位置
+  if (state?.locked?.[cur]) {
+    const t = document.createElement('div')
+    t.className = 'typingRow'
+    t.innerHTML = '<span class="tdot"></span><span class="tdot"></span><span class="tdot"></span><span class="ttxt">正在输入</span>'
+    el.appendChild(t)
+  }
+
+  // 位置还原：贴底的继续贴底；看历史的人按锚点消息放回原处
+  if (keepAtBottom) el.scrollTop = el.scrollHeight
+  else if (!restoreAnchor(el, anchor)) el.scrollTop = Math.max(0, el.scrollHeight - (prevHeight - prevTop))
+  seenMax[cur] = msgs.length ? msgs[msgs.length - 1].seq : 0
+  renderedSig = cur + ':' + msgs.length + ':' + seenMax[cur]
+  updateToBottom()
+}
+
+/** 送达进度变了但消息没变：只改最后一条下面那行小字，别整页重建。 */
+function paintSendTag(){
+  const arr = state?.messages?.[cur] || []
+  let tail = null
+  for (let i = arr.length - 1; i >= 0; i--) {
+    const m = arr[i]
+    if (m.text || m.image || m.audio || m.recalled) { tail = m; break }
+  }
+  if (!tail) return
+  const b = document.querySelector('#msgs .row[data-seq="' + tail.seq + '"] .b')
+  if (!b) return
+  let tag = b.querySelector('.sendtag')
+  if (tail.recalled || tail.from !== 'user') { if (tag) tag.remove(); return }
+  const ok = (state.delivered?.[cur] || 0) >= tail.seq
+  if (!tag) { tag = document.createElement('div'); b.appendChild(tag) }
+  if (ok) {
+    tag.className = 'sendtag'
+    tag.innerHTML = SEND_CHECK + '已发送'
+  } else {
+    tag.className = 'sendtag pending'
+    tag.innerHTML = '<i></i>发送中'
+  }
+}
+
+function renderHead(){
+  const c = state.convs.find(x => x.id === cur)
+  const rid = cur.replace('dm:','')
+  document.getElementById('headTitle').textContent = nameOf(cur === 'group' ? 'group' : rid, c?.name || '')
+  document.getElementById('headSub').textContent = online
+    ? (c?.kind === 'group' ? '三个人都在 · 谁接话看运气' : '私聊 · 只有她在')
+    : '离线 · 只看得到本地记录'
+  const a = document.getElementById('headAva')
+  const av = avatarOf(cur === 'group' ? 'group' : rid)
+  const headSrc = typeof av === 'string' && av.startsWith('/uploads/') ? avatarSrc(av) : ''
+  a.className = 'ava ' + CLS[rid]
+  if (headSrc) {
+    a.innerHTML = '<img src="' + headSrc + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'
+  } else {
+    a.innerHTML = AVA_SVG[cur === 'group' ? 'group' : rid] || esc(av)
+  }
+}
+
+/* 改名：点标题改群名，长按会话项改昵称。头像字符也能改。 */
+function renameConv(id){
+  const rid = id.replace('dm:','')
+  const isGroup = id === 'group'
+  const fallback = state.convs.find(x => x.id === id)?.name || rid
+  const curName = nameOf(isGroup ? 'group' : rid, fallback)
+  askText(isGroup ? '改群名' : ('改「' + curName + '」的昵称'), curName, (v) => {
+    if (isGroup) custom.groupName = v
+    else { custom.names = custom.names || {}; custom.names[rid] = v }
+    saveCustom(); renderAll()
+  })
+}
+
+/** 换我自己的头像。 */
+function pickMyAvatar(){
+  const inp = document.createElement('input')
+  inp.type = 'file'
+  inp.accept = 'image/*'
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]
+    if (!f) return
+    if (f.size > 6 * 1024 * 1024) { alert('头像 6MB 以内'); return }
+    const rd = new FileReader()
+    rd.onload = async () => {
+      const r = await api('/api/upload', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ data: rd.result, name: f.name })
+      })
+      if (!r.ok) { alert(r.error || '上传失败'); return }
+      custom.myAva = '/uploads/' + r.name
+      saveCustom(); renderMsgs()
+      api('/api/avatars', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ who: 'my', name: r.name }) }).catch(() => {})
+    }
+    rd.readAsDataURL(f)
+  }
+  inp.click()
+}
+
+function renameAvatar(id){
+  const rid = id.replace('dm:','')
+  const isGroup = id === 'group'
+  const inp = document.createElement('input')
+  inp.type = 'file'
+  inp.accept = 'image/*'
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]
+    if (!f) return
+    if (f.size > 6 * 1024 * 1024) { alert('头像 6MB 以内'); return }
+    const rd = new FileReader()
+    rd.onload = async () => {
+      const r = await api('/api/upload', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ data: rd.result, name: f.name })
+      })
+      if (!r.ok) { alert(r.error || '上传失败'); return }
+      if (isGroup) custom.groupAva = '/uploads/' + r.name
+      else { custom.avars = custom.avars || {}; custom.avars[rid] = '/uploads/' + r.name }
+      saveCustom(); renderAll()
+      // 同步给电脑那边的推送服务，通知里才能用真头像
+      api('/api/avatars', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ who: isGroup ? 'group' : rid, name: r.name }) }).catch(() => {})
+    }
+    rd.readAsDataURL(f)
+  }
+  inp.click()
+}
+
+function renderAll(){ renderConvs(); renderMsgs(); renderHead() }
+
+/* ── 本地库 ────────────────────────────────────────────────────
+   聊天记录和图片语音都放 IndexedDB。localStorage 只有 5 MB，
+   光图片就 28 MB，装不下。三张表：msgs（按 seq）、media（按路径）、meta（会话和已读）。
+   ───────────────────────────────────────────────────────────── */
+
+const IDB_NAME = 'nchat'
+const IDB_VER = 1
+const MEDIA_LIMIT = 300 * 1024 * 1024   // 图 + 语音一共 300 MB，超了先删最久没碰的
+
+let idbPromise = null
+function idbOpen() {
+  if (idbPromise) return idbPromise
+  idbPromise = new Promise((ok, fail) => {
+    if (!window.indexedDB) { fail(new Error('这台机器没有 IndexedDB')); return }
+    const rq = indexedDB.open(IDB_NAME, IDB_VER)
+    rq.onupgradeneeded = () => {
+      const db = rq.result
+      if (!db.objectStoreNames.contains('msgs')) {
+        db.createObjectStore('msgs', { keyPath: 'seq' }).createIndex('conv', 'conv')
+      }
+      if (!db.objectStoreNames.contains('media')) {
+        db.createObjectStore('media', { keyPath: 'path' }).createIndex('at', 'at')
+      }
+      if (!db.objectStoreNames.contains('meta')) {
+        db.createObjectStore('meta', { keyPath: 'k' })
+      }
+    }
+    rq.onsuccess = () => ok(rq.result)
+    rq.onerror = () => fail(rq.error)
+  })
+  return idbPromise
+}
+
+async function idbPut(store, val) {
+  const db = await idbOpen()
+  return new Promise((ok, fail) => {
+    const tx = db.transaction(store, 'readwrite')
+    tx.objectStore(store).put(val)
+    tx.oncomplete = () => ok(true)
+    tx.onerror = () => fail(tx.error)
+  })
+}
+
+async function idbPutMany(store, list) {
+  if (!list || list.length === 0) return 0
+  const db = await idbOpen()
+  return new Promise((ok, fail) => {
+    const tx = db.transaction(store, 'readwrite')
+    const st = tx.objectStore(store)
+    for (const v of list) st.put(v)
+    tx.oncomplete = () => ok(list.length)
+    tx.onerror = () => fail(tx.error)
+  })
+}
+
+async function idbGet(store, key) {
+  const db = await idbOpen()
+  return new Promise((ok) => {
+    const rq = db.transaction(store, 'readonly').objectStore(store).get(key)
+    rq.onsuccess = () => ok(rq.result)
+    rq.onerror = () => ok(null)
+  })
+}
+
+/** 某个会话的全部消息，按 seq 升序 —— 索引游标天然就是主键序。 */
+async function idbMsgs(conv) {
+  const db = await idbOpen()
+  return new Promise((ok) => {
+    const out = []
+    const rq = db.transaction('msgs', 'readonly').objectStore('msgs')
+      .index('conv').openCursor(IDBKeyRange.only(conv))
+    rq.onsuccess = () => {
+      const c = rq.result
+      if (!c) { ok(out); return }
+      out.push(c.value)
+      c.continue()
+    }
+    rq.onerror = () => ok(out)
+  })
+}
+
+async function idbMaxSeq() {
+  const db = await idbOpen()
+  return new Promise((ok) => {
+    const rq = db.transaction('msgs', 'readonly').objectStore('msgs').openCursor(null, 'prev')
+    rq.onsuccess = () => { const c = rq.result; ok(c ? c.key : 0) }
+    rq.onerror = () => ok(0)
+  })
+}
+
+async function saveMeta(obj) {
+  try { await idbPut('meta', { k: 'snapshot', v: Object.assign({}, obj, { full: metaFull ? 1 : 0 }) }) } catch (e) {}
+}
+async function loadMeta() {
+  try { const r = await idbGet('meta', 'snapshot'); return r ? r.v : null } catch (e) { return null }
+}
+
+/* 媒体：图片和语音按路径存 blob，渲染时换成 blob URL。
+   同一张图重复出现只存一份，靠路径当主键。 */
+const blobUrls = new Map()
+/** path -> {w,h}。缓存过的图记下原始尺寸，渲染时先把高度占住，别让列表被撑得跳。 */
+const mediaDim = new Map()
+
+async function loadMediaDims() {
+  try {
+    const db = await idbOpen()
+    await new Promise((ok) => {
+      const rq = db.transaction('media', 'readonly').objectStore('media').openCursor()
+      rq.onsuccess = () => {
+        const c = rq.result
+        if (!c) { ok(); return }
+        const v = c.value
+        if (v && v.path && v.w && v.h) mediaDim.set(v.path, { w: v.w, h: v.h })
+        c.continue()
+      }
+      rq.onerror = () => ok()
+    })
+  } catch (e) {}
+}
+
+/** 取图片的像素尺寸。拿不到就返回 null，退回原来的行为。 */
+async function measureImage(blob) {
+  try {
+    const bm = await createImageBitmap(blob)
+    const d = { w: bm.width, h: bm.height }
+    if (bm.close) bm.close()
+    return d
+  } catch (e) { return null }
+}
+
+async function mediaBlobUrl(path) {
+  if (blobUrls.has(path)) return blobUrls.get(path)
+  const rec = await idbGet('media', path)
+  if (rec && rec.blob) {
+    const u = URL.createObjectURL(rec.blob)
+    blobUrls.set(path, u)
+    return u
+  }
+  return ''
+}
+
+let lastTrim = 0
+async function putMedia(path, blob) {
+  // 图片顺手量一下尺寸，渲染时先用它占位
+  let dim = null
+  if (blob.type && blob.type.indexOf('image/') === 0) dim = await measureImage(blob)
+
+  const db = await idbOpen()
+  await new Promise((ok, fail) => {
+    const tx = db.transaction('media', 'readwrite')
+    tx.objectStore('media').put({
+      path, blob, size: blob.size || 0, at: Date.now(),
+      w: dim ? dim.w : 0, h: dim ? dim.h : 0,
+    })
+    tx.oncomplete = () => ok(true)
+    tx.onerror = () => fail(tx.error)
+  })
+  if (dim) mediaDim.set(path, dim)
+  if (Date.now() - lastTrim > 4000) { lastTrim = Date.now(); await trimMedia() }
+}
+
+/** 超 300 MB 就按「多久没碰过」从头删，删到 270 MB 为止，别贴着上限反复触发。 */
+async function trimMedia() {
+  const db = await idbOpen()
+  const rows = await new Promise((ok) => {
+    const out = []
+    const rq = db.transaction('media', 'readonly').objectStore('media').openCursor()
+    rq.onsuccess = () => {
+      const c = rq.result
+      if (!c) { ok(out); return }
+      const v = c.value
+      out.push({ path: v.path, size: v.size || 0, at: v.at || 0 })
+      c.continue()
+    }
+    rq.onerror = () => ok(out)
+  })
+  let total = 0
+  for (const r of rows) total += r.size
+  if (total <= MEDIA_LIMIT) return
+  rows.sort((a, b) => a.at - b.at)
+  const target = MEDIA_LIMIT * 0.9
+  const drop = []
+  for (const r of rows) {
+    if (total <= target) break
+    total -= r.size
+    drop.push(r.path)
+  }
+  if (drop.length === 0) return
+  await new Promise((ok) => {
+    const tx = db.transaction('media', 'readwrite')
+    const st = tx.objectStore('media')
+    for (const p of drop) st.delete(p)
+    tx.oncomplete = () => ok(true)
+    tx.onerror = () => ok(true)
+  })
+  for (const p of drop) {
+    const u = blobUrls.get(p)
+    if (u) { URL.revokeObjectURL(u); blobUrls.delete(p) }
+  }
+}
+
+/* 下载队列：串行跑，不跟聊天抢带宽。离线时自然停住。 */
+const mediaQueue = []
+const mediaQueued = new Set()
+let mediaBusy = false
+
+function wantMedia(path) {
+  if (!path || mediaQueued.has(path)) return
+  mediaQueued.add(path)
+  mediaQueue.push(path)
+  void pumpMedia()
+}
+
+async function pumpMedia() {
+  if (mediaBusy) return
+  mediaBusy = true
+  try {
+    while (mediaQueue.length > 0 && online) {
+      const p = mediaQueue.shift()
+      try {
+        if (await idbGet('media', p)) continue
+        const r = await fetch(apiBase() + p)
+        if (!r.ok) { mediaQueued.delete(p); continue }
+        const b = await r.blob()
+        if (!b || b.size === 0) { mediaQueued.delete(p); continue }
+        await putMedia(p, b)
+      } catch (e) {
+        // 单个失败不影响后面的；把标记撤掉，下次进这个页面还能再试
+        mediaQueued.delete(p)
+      }
+    }
+  } finally {
+    mediaBusy = false
+  }
+}
+
+/** 图片撑开高度之后，人还在底部就继续贴住 —— 不然图一解码完，内容就把他顶上去了。 */
+function stickIfBottom() {
+  if (!stickBottom) return
+  if (Date.now() - lastTouchAt < 400) return   // 手指还在动，别抢
+  const el = document.getElementById('msgs')
+  if (el) el.scrollTop = el.scrollHeight
+}
+
+/** 图片：本地有就用 blob，没有就直连（顺手存一份），离线又没缓存就摆个占位。 */
+async function paintImage(im, path) {
+  im.addEventListener('load', stickIfBottom)
+  let u = ''
+  try { u = await mediaBlobUrl(path) } catch (e) {}
+  if (u) { im.src = u; return }
+  if (online) {
+    im.src = apiBase() + path
+    wantMedia(path)
+    return
+  }
+  im.classList.add('gone')
+  const miss = document.createElement('span')
+  miss.className = 'imgmiss'
+  miss.textContent = '图片没缓存'
+  if (im.parentNode) im.parentNode.insertBefore(miss, im)
+}
+
+/* ── 同步 ───────────────────────────────────────────────────── */
+
+/** 把服务端给的消息写库。有则覆盖 —— 撤回改的就是同一条。 */
+async function storeMessages(byConv) {
+  const list = []
+  for (const arr of Object.values(byConv || {})) for (const m of arr) list.push(m)
+  if (list.length === 0) return
+  try { await idbPutMany('msgs', list) } catch (e) { recordError('IDB', String(e), 'storeMessages') }
+}
+
+async function fillMessages() {
+  const out = {}
+  for (const c of (state.convs || [])) {
+    try {
+      out[c.id] = await idbMsgs(c.id)
+    } catch (e) {
+      out[c.id] = (state.messages || {})[c.id] || []
+    }
+  }
+  state.messages = out
+}
+
+/** 拉全量历史。第一次 after=0 整份拖走，之后只问新的。 */
+async function syncArchive(silent) {
+  if (syncing || !online || !state) return
+  syncing = true
+  try {
+    // 首次必须从 0 拿。用本地最大 seq 当起点会漏掉「比尾巴小但没同步过」的旧消息 ——
+    // /api/state 只给每个会话最近 200 条，各会话的头部都没进来。
+    const after = metaFull ? await idbMaxSeq() : 0
+    const r = await api('/api/archive?after=' + after)
+    if (r && r.ok && Array.isArray(r.messages)) {
+      if (r.messages.length > 0) await idbPutMany('msgs', r.messages)
+      if (r.roles) state.roles = r.roles
+      if (r.convs) state.convs = r.convs
+      if (r.readAt) state.readAt = r.readAt
+      if (r.delivered) state.delivered = r.delivered
+      metaFull = true
+      await saveMeta({ roles: state.roles, convs: state.convs, readAt: state.readAt, delivered: state.delivered, moods: state.moods, at: Date.now() })
+      await fillMessages()
+      if (!silent) { renderConvs(); renderHead(); renderMsgs() }
+    }
+  } catch (e) {
+    recordError('SYNC', String(e), 'syncArchive')
+  } finally {
+    syncing = false
+  }
+}
+
+/** 把整份记录里出现过的图片、语音排进下载队列。 */
+async function prefetchAllMedia() {
+  for (const list of Object.values(state.messages || {})) {
+    for (const m of list) {
+      if (m.image) wantMedia(imgUrl(m.image))
+      if (m.audio) wantMedia('/audio/' + encodeURIComponent(m.audio))
+    }
+  }
+  for (const p of Object.values(custom.avars || {})) if (typeof p === 'string' && p.startsWith('/uploads/')) wantMedia(p)
+  if (custom.groupAva && custom.groupAva.startsWith('/uploads/')) wantMedia(custom.groupAva)
+  if (custom.myAva && custom.myAva.startsWith('/uploads/')) wantMedia(custom.myAva)
+}
+
+/* ── 在线 / 离线 ─────────────────────────────────────────────── */
+
+function setComposerEnabled(on) {
+  const ta = document.getElementById('input')
+  const send = document.getElementById('send')
+  const bi = document.getElementById('btnImg')
+  const ba = document.getElementById('btnAt')
+  if (ta) { ta.disabled = !on; ta.placeholder = on ? '发消息…' : '离线中，连上电脑才能发' }
+  if (send) send.disabled = !on
+  if (bi) bi.disabled = !on
+  if (ba) ba.disabled = !on
+  const wrap = document.getElementById('inputWrap')
+  if (wrap) wrap.style.opacity = on ? '' : '.55'
+}
+
+function goOffline(silent) {
+  const was = online
+  online = false
+  setComposerEnabled(false)
+  const dot = document.getElementById('healthDot')
+  if (dot) { dot.className = 'dot bad'; dot.title = '连不上电脑，在看本地记录' }
+  renderHead()
+  if (!silent && was) showToast('连不上电脑 · 现在只能翻记录')
+}
+
+function goOnline(silent) {
+  const was = online
+  online = true
+  failCount = 0
+  setComposerEnabled(true)
+  const dot = document.getElementById('healthDot')
+  if (dot) { dot.className = 'dot'; dot.title = '连上了' }
+  renderHead()
+  if (!was && !silent) showToast('连上了')
+  void pumpMedia()   // 断网期间攒下的队列接着下
+}
+
+/** 2.5 秒内应一声就算通。挂太久会把离线误判成在线。 */
+async function probe() {
+  try {
+    const ctl = new AbortController()
+    const t = setTimeout(() => ctl.abort(), 2500)
+    const r = await fetch(apiBase() + '/api/health', { cache: 'no-store', signal: ctl.signal })
+    clearTimeout(t)
+    return r.ok
+  } catch (e) { return false }
+}
+
+const CACHE_KEY = 'nchat_cache_v1'
+
+/** 存一份最近的状态，电脑关着也能翻聊天记录。只留最近 80 条，别把 localStorage 撑爆。 */
+function saveCache(d){
+  try {
+    const slim = {
+      at: Date.now(),
+      roles: d.roles,
+      convs: d.convs,
+      moods: d.moods,
+      readAt: d.readAt,
+      locked: {},
+      messages: {},
+    }
+    for (const [k, list] of Object.entries(d.messages || {})) {
+      slim.messages[k] = (list || []).slice(-80)
+    }
+    localStorage.setItem(CACHE_KEY, JSON.stringify(slim))
+  } catch (e) {
+    // 存不下就算了，不能因为这个影响聊天
+  }
+}
+
+function loadCache(){
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const c = JSON.parse(raw)
+    if (!c || !c.roles) return null
+    return c
+  } catch { return null }
+}
+
+/**
+ * 拉一次状态。silent 用在启动阶段 —— 那时候先别画，等历史补齐一次画完，
+ * 否则会「200 条 → 301 条」跳两下。
+ */
+/** 上一次见到的消息流版本号。服务端只要追加 / 撤回 / 配上语音就 +1。 */
+let lastRev = -1
+
+async function refresh(silent){
+  if (!online || !state || refreshing || switchingId) return
+  refreshing = true
+  try {
+    // 先问一句「消息流变了没」。没变就只同步锁和送达状态，不拉全量 ——
+    // 全量一次一百多 KB，1.6 秒一次，手机走组网就是每小时两百多兆。
+    const q = await api('/api/state?slim=1')
+    if (q && typeof q.rev === 'number') {
+      const lockedChanged = JSON.stringify(q.locked || {}) !== JSON.stringify(state.locked || {})
+      const dlvChanged = JSON.stringify(q.delivered || {}) !== JSON.stringify(state.delivered || {})
+      state.moods = q.moods || state.moods
+      state.locked = q.locked || state.locked
+      state.delivered = q.delivered || state.delivered
+      failCount = 0
+      if (q.rev === lastRev) {
+        // 没新消息，但「正在输入」的开始 / 结束得跟上，不然那行会一直挂着
+        if (lockedChanged) renderMsgs()
+        else if (dlvChanged) paintSendTag()
+        return
+      }
+      lastRev = q.rev
+    }
+
+    const d = await api('/api/state')
+    if (typeof d.rev === 'number') lastRev = d.rev
+    failCount = 0
+    state.roles = d.roles || state.roles
+    state.convs = d.convs || state.convs
+    state.readAt = d.readAt || {}
+    state.delivered = d.delivered || {}
+    state.moods = d.moods || {}
+    state.locked = d.locked || {}
+    state.hosts = d.hosts || []
+    state.at = Date.now()
+
+    // 最近 200 条落库。撤回改的是同一条，靠这次覆盖同步过来。
+    await storeMessages(d.messages)
+    await saveMeta({ roles: state.roles, convs: state.convs, readAt: state.readAt, delivered: state.delivered, moods: state.moods, at: state.at })
+    saveCache(d)
+
+    if (silent) return
+
+    // 只看当前会话有没有新东西。别的会话有人说话不该动这一屏 ——
+    // 之前用全局最大 seq 判断，私聊来一句就把群聊整页重建一次，看着像乱跳。
+    const arr = d.messages?.[cur] || []
+    const tail = arr.length ? arr[arr.length - 1].seq : 0
+    const localTail = seenMax[cur] || 0
+    const changed = tail > localTail
+    // 送达进度变了但消息没变（刚发出去那条被模型收下了）——也得重画，
+    // 不然那行「发送中」会一直挂着
+    const dlvNow = d.delivered?.[cur] || 0
+    const dlvChanged = dlvNow !== (seenDlv[cur] || 0)
+    seenDlv[cur] = dlvNow
+
+    if (changed) {
+      try { state.messages[cur] = await idbMsgs(cur) } catch (e) {}
+    }
+    renderConvs()
+    renderHead()
+    if (changed) renderMsgs()
+    else if (dlvChanged) paintSendTag()
+  } catch (err) {
+    // 一次失败先当抖动，连续两次才认定离线
+    failCount++
+    if (failCount >= 2) goOffline()
+  } finally {
+    refreshing = false
+  }
+}
+
+document.getElementById('msgs').addEventListener('scroll', () => {
+  const el = document.getElementById('msgs')
+  stickBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 90
+  updateToBottom()
+})
+
+/* 顶栏和输入卡都是浮在列表上层的，列表得按它们的实际高度留出空隙。
+   输入框长高、搜索条展开、键盘弹出，都会走这里重算。 */
+function syncInsets(){
+  const main = document.getElementById('main')
+  const top = document.getElementById('topbar')
+  const comp = document.getElementById('composer')
+  if (!main || !top || !comp) return
+  main.style.setProperty('--top-h', top.offsetHeight + 'px')
+  main.style.setProperty('--comp-h', comp.offsetHeight + 'px')
+  // 输入框长高会把列表顶上去，贴着底的人得重新贴住
+  if (stickBottom && msgsBox) msgsBox.scrollTop = msgsBox.scrollHeight
+}
+
+const msgsBox = document.getElementById('msgs')
+const toBottomBtn = document.getElementById('toBottom')
+
+/* ── 边缘回弹 ────────────────────────────────────────────────
+   贴边还继续拖的时候，让内容跟着手指走一小段（越拉越沉），松手弹回去。
+   只在「按下时正好贴边」的手势里接管：touchmove 是非 passive 的，
+   不能常驻，否则整个列表的滚动都会掉出快速通道。 */
+let edgeDir = 0          // -1 顶到上沿，1 到底
+let edgeStartY = 0
+let edgeStartX = 0
+let edgeOn = false
+const EDGE_MAX = 72      // 最多拉出这么多
+const EDGE_K = 0.9       // 阻尼手感
+
+function edgeScrollMax(){
+  if (!msgsBox) return 0
+  return Math.max(0, msgsBox.scrollHeight - msgsBox.clientHeight)
+}
+
+function edgeStart(e){
+  if (!msgsBox || e.touches.length !== 1) return
+  const top = msgsBox.scrollTop <= 0
+  const bottom = msgsBox.scrollTop >= edgeScrollMax() - 0.5
+  if (top) edgeDir = -1
+  else if (bottom) edgeDir = 1
+  else return
+  edgeStartY = e.touches[0].clientY
+  edgeStartX = e.touches[0].clientX
+  edgeOn = true
+  msgsBox.addEventListener('touchmove', edgeMove, { passive: true })
+}
+
+function edgeMove(e){
+  if (!edgeOn || e.touches.length !== 1) return
+  const dy = e.touches[0].clientY - edgeStartY
+  const dx = e.touches[0].clientX - edgeStartX
+  // 方向不对 / 横向滑动：交还给系统
+  if (Math.abs(dx) > Math.abs(dy) || (edgeDir === -1 && dy <= 0) || (edgeDir === 1 && dy >= 0)) {
+    edgeEnd()
+    return
+  }
+  // 不拦默认行为：贴边时本来也没有可滚的内容，
+  // 拦了就得挂非 passive 的监听，整个列表会掉出合成器快速通道
+  const raw = Math.abs(dy)
+  const pull = EDGE_MAX * (1 - Math.exp(-raw / (EDGE_MAX / EDGE_K)))
+  if (msgsBox) msgsBox.style.transform = 'translate3d(0,' + (edgeDir === -1 ? pull : -pull).toFixed(1) + 'px,0)'
+}
+
+function edgeEnd(){
+  if (!edgeOn) return
+  edgeOn = false
+  if (msgsBox) msgsBox.removeEventListener('touchmove', edgeMove)
+  if (msgsBox) {
+    msgsBox.style.transition = 'transform .34s cubic-bezier(.22,1.1,.36,1)'
+    msgsBox.style.transform = ''
+    setTimeout(() => { msgsBox.style.transition = '' }, 360)
+  }
+}
+
+if (msgsBox) {
+  msgsBox.addEventListener('touchstart', edgeStart, { passive: true })
+  msgsBox.addEventListener('touchend', edgeEnd, { passive: true })
+  msgsBox.addEventListener('touchcancel', edgeEnd, { passive: true })
+}
+
+
+function updateToBottom(){
+  if (!msgsBox || !toBottomBtn) return
+  const gap = msgsBox.scrollHeight - msgsBox.scrollTop - msgsBox.clientHeight
+  toBottomBtn.classList.toggle('on', gap > 120)
+}
+
+if (toBottomBtn) {
+  toBottomBtn.onclick = () => {
+    stickBottom = true
+    msgsBox.scrollTo({ top: msgsBox.scrollHeight, behavior: 'smooth' })
+  }
+}
+
+try {
+  const ro = new ResizeObserver(syncInsets)
+  ro.observe(document.getElementById('topbar'))
+  ro.observe(document.getElementById('composer'))
+} catch (e) {
+  window.addEventListener('resize', syncInsets)
+}
+window.addEventListener('resize', syncInsets)
+window.addEventListener('orientationchange', () => setTimeout(syncInsets, 120))
+if (window.visualViewport) {
+  visualViewport.addEventListener('resize', () => {
+    syncInsets()
+    if (stickBottom) msgsBox.scrollTop = msgsBox.scrollHeight
+  })
+}
+
+// 手指还按在屏幕上时别去改 scrollTop，会打断惯性滑动
+let lastTouchAt = 0
+document.getElementById('msgs').addEventListener('touchmove', () => { lastTouchAt = Date.now() }, { passive: true })
+
+const draftKey = (c) => 'nchat_draft_' + c
+
+function saveDraft(){
+  const v = document.getElementById('input').value
+  if (v.trim() === '') localStorage.removeItem(draftKey(cur))
+  else localStorage.setItem(draftKey(cur), v)
+}
+
+function loadDraft(){
+  const v = localStorage.getItem(draftKey(cur)) || ''
+  const ta = document.getElementById('input')
+  ta.value = v
+  autoGrow(ta)
+}
+
+/** 输入框自动长高。空内容强制回一行 —— 之前它会被上次的高度撑着。 */
+function autoGrow(ta){
+  ta.style.height = '0px'
+  if (ta.value === '') { ta.style.height = ''; return }
+  ta.style.height = Math.min(ta.scrollHeight, 132) + 'px'
+}
+
+async function switchTo(id, opts){
+  const animate = !(opts && opts.animate === false)
+  saveDraft()
+  const same = id === cur
+  cur = id
+  loadDraft()
+  stickBottom = true          // 换会话一定回到底部
+  // 每个会话都从库里现取全量，切过去才翻得到最早那句
+  switchingId = id
+  let local = []
+  try { local = await idbMsgs(id) } catch (e) {}
+  if (cur !== id) return      // 取数期间又点了别的会话，这次就算了
+  switchingId = ''
+  if (state && local.length > 0) state.messages[id] = local
+  // 先把「看到第几条」对齐，再画 —— 否则切过去会把上次没看的那几十条
+  // 全当成新消息，一起做入场动画
+  const msgs = state?.messages?.[id] || []
+  seenMax[id] = msgs.length ? msgs[msgs.length - 1].seq : 0
+  seenDlv[id] = state?.delivered?.[id] || 0
+  // 启动时这份内容刚画过一遍：别重建，重建就是一次闪屏
+  const sig = id + ':' + msgs.length + ':' + seenMax[id]
+  if (sig === renderedSig && same) renderHead()
+  else renderAll()
+  const el = document.getElementById('msgs')
+  el.scrollTop = el.scrollHeight
+  // 换页时整屏淡一下，硬切太生硬；启动那一次不要，第一帧直接是清楚的
+  if (animate && el.animate) el.animate([{ opacity: .3 }, { opacity: 1 }], { duration: 170, easing: 'ease-out' })
+  lastSeq[id] = seenMax[id]
+}
+
+function pickImage(){
+  const inp = document.createElement('input')
+  inp.type = 'file'
+  inp.accept = 'image/*'
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]
+    if (!f) return
+    if (f.size > 12 * 1024 * 1024) { alert('图太大了，12MB 以内'); return }
+    const rd = new FileReader()
+    rd.onload = async () => {
+      try {
+        const r = await api('/api/upload', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ data: rd.result, name: f.name })
+        })
+        if (!r.ok) { alert(r.error || '上传失败'); return }
+        pendingImage = r.name
+        const box = document.getElementById('pending')
+        box.textContent = ''
+        const wrap = document.createElement('div')
+        wrap.className = 'pimg'
+        const im = document.createElement('img')
+        im.src = apiBase() + '/uploads/' + encodeURIComponent(r.name)
+        const x = document.createElement('span')
+        x.className = 'x'
+        x.textContent = '×'
+        x.onclick = clearPending
+        wrap.appendChild(im); wrap.appendChild(x); box.appendChild(wrap)
+        box.classList.add('on')
+      } catch (e) { alert('上传出错：' + e.message) }
+    }
+    rd.readAsDataURL(f)
+  }
+  inp.click()
+}
+
+function clearReply(){
+  pendingReply = 0
+  const bar = document.getElementById('replyBar')
+  bar.classList.remove('on')
+  bar.querySelector('.who').textContent = ''
+  bar.querySelector('.tx').textContent = ''
+}
+
+function clearPending(){
+  pendingImage = ''
+  const box = document.getElementById('pending')
+  box.innerHTML = ''
+  box.classList.remove('on')
+}
+
+async function send(){
+  const ta = document.getElementById('input')
+  const btn = document.getElementById('send')
+  const text = ta.value.trim()
+  if ((!text && !pendingImage) || sending) return
+  sending = true
+  if (btn) btn.classList.add('loading')
+  const img = pendingImage
+  // 引用的是哪一条，必须在 clearReply() 之前抓到手里。
+  // 之前这里备份了却没用，body 里又读了 pendingReply —— 那会儿它已经被清成 0，
+  // 于是引用功能一直是哑的：引用条显示了，发出去的消息里 replyTo 永远是 0。
+  const reply = pendingReply
+  ta.value = ''
+  autoGrow(ta)
+  clearPending(); clearReply()
+  try {
+    const r = await api('/api/send', {
+      method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({ conv: cur, text, image: img, replyTo: reply })
+    })
+    if (!r.ok) {
+      // 发失败就把内容还回输入框，别让人白打一遍
+      const ta2 = document.getElementById('input')
+      ta2.value = text
+      ta2.style.height = 'auto'
+      if (img) { pendingImage = img }
+      saveDraft()
+      showToast(r.error || '发送失败，内容已留在输入框')
+    }
+    await refresh()
+    renderMsgs()
+  } finally {
+    sending = false
+    if (btn) btn.classList.remove('loading')
+  }
+}
+
+function buildAtMenu(){
+  const menu = document.createElement('div')
+  menu.id = 'atMenu'
+  document.getElementById('inputWrap').appendChild(menu)
+  const names = ['@所有人'].concat(state ? state.roles.map(r => '@' + nameOf(r.id, r.name)) : [])
+  menu.innerHTML = names.map(n => '<div data-n="' + esc(n) + '">' + esc(n) + '</div>').join('')
+  menu.querySelectorAll('div').forEach(d => {
+    d.onclick = () => {
+      const ta = document.getElementById('input')
+      const v = d.dataset.n
+      ta.value = (ta.value ? ta.value + ' ' : '') + v + ' '
+      menu.classList.remove('on')
+      ta.focus()
+    }
+  })
+  return menu
+}
+
+function toggleAt(){
+  let menu = document.getElementById('atMenu')
+  if (!menu) menu = buildAtMenu()
+  menu.classList.toggle('on')
+  // 焦点还给输入框，键盘不重新弹一次也不会收
+  const ta = document.getElementById('input')
+  if (ta) ta.focus({ preventScroll: true })
+}
+
+document.getElementById('replyClose').onclick = clearReply
+bindTap(document.getElementById('btnAt'), toggleAt)
+bindTap(document.getElementById('btnImg'), pickImage)
+/**
+ * 按一下就走，同时不抢走输入框的焦点（一失焦键盘就收了）。
+ * 用 pointerdown 一个事件统一桌面和手机：
+ * preventDefault 会顺带掐掉后面的 click，所以动作必须在这里直接执行。
+ */
+function bindTap(el, action){
+  if (!el) return
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault()
+    action()
+  })
+}
+document.getElementById('send').onclick = send
+// 回车不再当发送键：手机输入法的换行键就是 Enter，
+// 拦了它就没法换行。发送只认下面那个按钮。
+document.getElementById('input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send() }
+})
+document.getElementById('input').addEventListener('input', e => {
+  autoGrow(e.target)
+  saveDraft()
+})
+let toastTimer = null
+function showToast(msg){
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('on')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2600)
+}
+
+/** 长按消息弹出的底部操作条。比 prompt 好用得多。 */
+const ACT_ICON = {
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
+  quote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h6"/><path d="M13 7l4 5-4 5"/></svg>',
+  recall: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+  del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>',
+}
+
+function showActions(seq){
+  const m = (state?.messages?.[cur] || []).find(x => x.seq === seq)
+  if (!m || m.recalled) return
+  const box = document.getElementById('actions')
+  const list = document.getElementById('actionList')
+  list.innerHTML = ''
+
+  const items = [{ k: 'copy', n: '复制' }, { k: 'quote', n: '引用' }]
+  if (m.from === 'user') items.push({ k: 'recall', n: '撤回', danger: true })
+
+  for (const it of items) {
+    const d = document.createElement('div')
+    d.className = 'ai' + (it.danger ? ' danger' : '')
+    d.innerHTML = (ACT_ICON[it.k] || '') + '<span>' + it.n + '</span>'
+    d.onclick = () => {
+      box.classList.remove('on')
+      if (it.k === 'copy') {
+        navigator.clipboard?.writeText(m.text || '').catch(() => alert('复制失败'))
+      } else if (it.k === 'quote') {
+        pendingReply = seq
+        const bar = document.getElementById('replyBar')
+        bar.querySelector('.who').textContent = '回复 ' + (m.from === 'user' ? '自己' : nameOf(m.from, m.from))
+        bar.querySelector('.tx').textContent = (m.text || '[图片]').slice(0, 40)
+        bar.classList.add('on')
+        document.getElementById('input').focus({ preventScroll: true })
+      } else if (it.k === 'recall') {
+        api('/api/recall', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ seq }) })
+          .then(r => { if (!r.ok) alert(r.error || '撤不了'); return refresh() })
+          .then(() => renderMsgs())
+      }
+    }
+    list.appendChild(d)
+  }
+
+  const cancel = document.createElement('div')
+  cancel.className = 'ai'
+  cancel.style.color = 'var(--dim)'
+  cancel.innerHTML = '<span>取消</span>'
+  cancel.onclick = () => box.classList.remove('on')
+  list.appendChild(cancel)
+
+  box.classList.add('on')
+  box.onclick = (e) => { if (e.target.id === 'actions') box.classList.remove('on') }
+}
+
+/** 通用输入弹窗。比 prompt 好看，也能在手机上正常用。 */
+function askText(title, value, onOk){
+  const dlg = document.getElementById('dialog')
+  const inp = document.getElementById('dlgInput')
+  document.getElementById('dlgTitle').textContent = title
+  inp.value = value || ''
+  dlg.classList.add('on')
+  setTimeout(() => { inp.focus(); inp.select() }, 50)
+  const close = () => { dlg.classList.remove('on') }
+  const ok = () => {
+    const v = inp.value.trim()
+    close()
+    if (v !== '') onOk(v)
+  }
+  document.getElementById('dlgOk').onclick = ok
+  document.getElementById('dlgCancel').onclick = close
+  inp.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); ok() }
+    if (e.key === 'Escape') close()
+  }
+}
+
+/** 快捷切换地址。跳过去之后浏览器自己会用新地址重新加载。 */
+function bindNetSwitch(){
+  const box = document.getElementById('netSwitch')
+  const tip = document.getElementById('netTip')
+  if (!box) return
+
+  // 地址从服务端拿，不写死 —— 电脑换了 IP 也跟得上。
+  // 默认走局域网（手机和电脑同一个 Wi-Fi 就行）；
+  // 装了组网工具（Tailscale 之类）的话，它的地址排第二，出门用那个。
+  let hosts = Array.isArray(state?.hosts) ? state.hosts : []
+  if (hosts.length === 0) hosts = []
+  const xe = hosts.find((h) => h.kind === 'lan') || hosts[0]
+  // 页面本身是从壳里加载的（http://nchat.local），当前在用哪个地址得看 apiBase()
+  const curHost = apiBase().replace(/^https?:\/\//i, '').replace(/\/+$/, '')
+  const port = (curHost.split(':')[1] || '4200')
+
+  const setChip = (el, host) => {
+    if (!el) return
+    if (!host) {
+      el.disabled = true
+      el.querySelector('span').textContent = '没找到'
+      return
+    }
+    el.dataset.host = host.address + ':' + port
+    el.querySelector('span').textContent = host.address
+    el.classList.toggle('on', host.address + ':' + port === curHost)
+  }
+  const chips = box.querySelectorAll('.nchip')
+  setChip(chips[0], xe)
+
+  chips.forEach((b) => {
+    b.onclick = () => {
+      const host = b.dataset.host
+      if (!host) return
+      if (host === curHost) { tip.textContent = '已经在用这个了'; return }
+      tip.textContent = '正在切到 ' + host + ' …'
+      const url = 'http://' + host
+      if (window.NChat && typeof NChat.saveServer === 'function') {
+        // app 里：把新地址交给原生存下，再重载这个壳
+        try { NChat.saveServer(url) } catch (e) {}
+        localStorage.setItem('dsh_group_server', url)
+        setTimeout(() => location.reload(), 150)
+      } else {
+        location.href = url + '/'
+      }
+    }
+  })
+}
+
+/* ── 设置：配色 / 备份 / 服务器地址 ── */
+
+/* ── 主题：跟随系统 / 浅色 / 深色 × 四套配色 ──────────────
+   两件事分开存：mode 决定明暗，palette 决定色系。
+   每套配色在 CSS 里都有明暗两版变量，所以随便组合都不会有对不上的地方。
+   ─────────────────────────────────────────────────────────── */
+
+const PALETTES = [
+  { id: 'night',  name: '深蓝', accent: '#7c8cff', bg: { dark: '#0b0e14', light: '#f3f5f9' } },
+  { id: 'clay',    name: '陶土', accent: '#d98a63', bg: { dark: '#140f0c', light: '#fbf5f1' } },
+  { id: 'plum',    name: '暗紫', accent: '#c07be8', bg: { dark: '#0d0a12', light: '#faf5fd' } },
+  { id: 'celadon', name: '青瓷', accent: '#8fbba6', bg: { dark: '#0a1210', light: '#f3f8f5' } },
+]
+
+let themeMode = localStorage.getItem('nchat_mode') || 'auto'
+let palette = localStorage.getItem('nchat_theme') || 'night'
+if (!PALETTES.some(p => p.id === palette)) palette = 'night'
+
+/** 系统是不是深色。APK 里 WebView 的 prefers-color-scheme 跟着应用主题走，
+    不跟系统 —— 所以优先问原生，浏览器里才退回媒体查询。 */
+function systemDark(){
+  try {
+    if (window.NChat && typeof NChat.systemDark === 'function') return !!Number(NChat.systemDark())
+  } catch (e) {}
+  try { return !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) } catch (e) { return true }
+}
+
+function scheme(){
+  if (themeMode === 'light') return 'light'
+  if (themeMode === 'dark') return 'dark'
+  return systemDark() ? 'dark' : 'light'
+}
+
+/** 写进 DOM，并把底色交给原生去刷状态栏 / 导航栏。 */
+function applyTheme(){
+  const s = scheme()
+  const root = document.documentElement
+  root.setAttribute('data-scheme', s)
+  root.setAttribute('data-palette', palette)
+  root.style.colorScheme = s
+  const bg = (PALETTES.find(p => p.id === palette) || PALETTES[0]).bg[s]
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', bg)
+  try {
+    if (window.NChat && typeof NChat.setTheme === 'function') NChat.setTheme(s, bg)
+  } catch (e) {}
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === themeMode))
+  document.querySelectorAll('.themes .t').forEach(n => n.classList.toggle('on', n.dataset.t === palette))
+}
+
+function setMode(m){
+  themeMode = m
+  localStorage.setItem('nchat_mode', m)
+  applyTheme()
+}
+
+function setPalette(id){
+  palette = id
+  localStorage.setItem('nchat_theme', id)
+  applyTheme()
+}
+
+function buildThemes(){
+  const box = document.getElementById('themeList')
+  if (!box) return
+  box.innerHTML = ''
+  for (const p of PALETTES) {
+    const d = document.createElement('div')
+    d.className = 't' + (p.id === palette ? ' on' : '')
+    d.dataset.t = p.id
+    d.title = p.name
+    d.style.background = p.accent
+    d.innerHTML = SEND_CHECK
+    d.onclick = () => setPalette(p.id)
+    box.appendChild(d)
+  }
+}
+
+// 系统明暗变了：只有「跟随系统」要跟着动，手动钉死的保持原样
+try {
+  const mq = matchMedia('(prefers-color-scheme: dark)')
+  mq.addEventListener('change', () => { if (themeMode === 'auto') applyTheme() })
+} catch (e) {}
+// 原生在 onConfigurationChanged 里叫这个
+window.__nchatSysTheme = function(){ if (themeMode === 'auto') applyTheme() }
+
+const MOOD_META = [
+  { k: 'missing',  n: '想他',   c: '#7c8cff' },
+  { k: 'jealousy', n: '吃醋',   c: '#e8a33d' },
+  { k: 'warmth',   n: '暖意',   c: '#e86a9a' },
+  { k: 'worry',    n: '担心',   c: '#5ec4d8' },
+  { k: 'boredom',  n: '闲得慌', c: '#9aa1ad' },
+  { k: 'lust',     n: '涩涩',   c: '#c07be8' },
+  { k: 'annoyance',n: '恼火',   c: '#e5534b' },
+]
+
+function renderMoods(){
+  const box = document.getElementById('moodBox')
+  if (!state?.moods) { box.textContent = '（还没有数据）'; return }
+  box.innerHTML = ''
+
+  for (const r of (state.roles || [])) {
+    const m = state.moods[r.id] || {}
+    const vals = MOOD_META.map(x => Math.round(m[x.k] || 0))
+    const topIdx = vals.indexOf(Math.max(...vals))
+    const top = vals[topIdx]
+
+    const card = document.createElement('div')
+    card.className = 'mcard'
+
+    const head = document.createElement('div')
+    head.className = 'mhead'
+    const nm = document.createElement('div')
+    nm.className = 'mname'
+    nm.innerHTML = '<i></i>' + esc(nameOf(r.id, r.name))
+    nm.querySelector('i').style.background = ['#2d8f8f', '#8a7bd8', '#d88a5b'][(state.roles || []).indexOf(r)] || '#888'
+    const tp = document.createElement('div')
+    tp.className = 'mtop'
+    tp.textContent = top > 0 ? ('现在最' + MOOD_META[topIdx].n) : '没什么情绪'
+    head.appendChild(nm)
+    head.appendChild(tp)
+    card.appendChild(head)
+
+    MOOD_META.forEach((meta, i) => {
+      const row = document.createElement('div')
+      row.className = 'mrow'
+      row.innerHTML = '<div class="mlbl">' + meta.n + '</div>'
+        + '<div class="mtrack"><div class="mfill" style="width:' + Math.max(vals[i], 1) + '%;background:' + meta.c + '"></div></div>'
+        + '<div class="mval' + (vals[i] === top && top > 0 ? ' hot' : '') + '">' + vals[i] + '</div>'
+      card.appendChild(row)
+    })
+    box.appendChild(card)
+  }
+}
+
+function openSettings(force){
+  const box = document.getElementById('settings')
+  const on = force !== undefined ? force : !box.classList.contains('on')
+  box.classList.toggle('on', on)
+  if (on) {
+    buildThemes()
+    applyTheme()
+    bindNetSwitch()
+    renderMoods()
+    document.getElementById('setTip').textContent = ''
+    refresh().then(renderMoods).catch(() => {})
+  }
+}
+
+/* ── 大图预览 ── */
+const viewer = document.getElementById('viewer')
+const viewerImg = viewer.querySelector('img')
+viewer.onclick = () => viewer.classList.remove('on')
+viewer.querySelector('.close').onclick = (e) => { e.stopPropagation(); viewer.classList.remove('on') }
+
+function openViewer(src){
+  viewerImg.src = src
+  viewer.classList.add('on')
+}
+
+/** 一句话提示，自己淡出。用不着弹窗打断。 */
+function flash(msg){
+  const d = document.createElement('div')
+  d.textContent = msg
+  d.style.cssText = 'position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:9px 16px;border-radius:18px;font-size:13px;z-index:99;pointer-events:none;opacity:1;transition:opacity .25s'
+  document.body.appendChild(d)
+  setTimeout(() => { d.style.opacity = '0' }, 1500)
+  setTimeout(() => d.remove(), 1850)
+}
+
+/* 保存到相册：只有 App 里那个桥能写进图库，浏览器里退化成普通下载 */
+const viewerSave = document.getElementById('viewerSave')
+const canSaveToGallery = !!(window.AndroidSaver && typeof window.AndroidSaver.saveImage === 'function')
+if (canSaveToGallery) viewerSave.hidden = false
+viewerSave.onclick = async (e) => {
+  e.stopPropagation()
+  const src = viewerImg.src
+  if (!src) return
+  const name = (src.split('/').pop() || 'image.png').split('?')[0]
+  try {
+    if (canSaveToGallery) {
+      const res = await fetch(src)
+      const buf = new Uint8Array(await res.arrayBuffer())
+      // 分块转字符串，几 MB 的图直接 apply 会爆栈
+      let bin = ''
+      for (let i = 0; i < buf.length; i += 0x8000) {
+        bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000))
+      }
+      const r = window.AndroidSaver.saveImage(name, btoa(bin))
+      flash(r ? '已存到相册' : '保存失败')
+    } else {
+      const a = document.createElement('a')
+      a.href = src
+      a.download = name
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+    }
+  } catch (err) {
+    flash('保存失败')
+  }
+}
+
+/* ── 会话内搜索 ── */
+let searchHits = [], searchIdx = -1
+
+function toggleSearch(force){
+  const bar = document.getElementById('searchBar')
+  const on = force !== undefined ? force : !bar.classList.contains('on')
+  bar.classList.toggle('on', on)
+  if (on) { document.getElementById('searchInput').focus() }
+  else { document.getElementById('searchInput').value = ''; document.getElementById('searchCnt').textContent = ''; renderMsgs() }
+}
+
+function runSearch(kw){
+  const el = document.getElementById('msgs')
+  const cnt = document.getElementById('searchCnt')
+  const msgs = (state?.messages?.[cur] || [])
+  if (kw === '') { cnt.textContent = ''; renderMsgs(); return }
+  const hits = msgs.filter(m => (m.text || '').includes(kw))
+  cnt.textContent = hits.length + ' 条'
+  if (hits.length === 0) { renderMsgs(); return }
+  const target = hits[hits.length - 1]
+  const row = el.querySelector('.row[data-seq="' + target.seq + '"]')
+  if (row) {
+    row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    row.querySelector('.bub').style.outline = '2px solid var(--accent)'
+    setTimeout(() => { const b = row.querySelector('.bub'); if (b) b.style.outline = '' }, 1600)
+  }
+}
+
+document.getElementById('headGear').onclick = () => openSettings()
+document.getElementById('setClose').onclick = () => openSettings(false)
+document.getElementById('settings').onclick = (e) => { if (e.target.id === 'settings') openSettings(false) }
+
+document.getElementById('btnBackup').onclick = async () => {
+  const tip = document.getElementById('setTip')
+  tip.textContent = '正在备份…'
+  try {
+    const r = await api('/api/backup', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+    tip.textContent = r.ok ? ('已备份到：' + r.path) : ('备份失败：' + (r.error || '未知'))
+  } catch (e) {
+    tip.textContent = '备份失败：' + e.message
+  }
+}
+
+document.getElementById('btnServer').onclick = () => {
+  const tip = document.getElementById('setTip')
+  tip.textContent = '当前连的是 ' + apiBase() + '。要换地址，回到 app 首屏的地址页重填（或清掉浏览器数据）。'
+}
+
+document.getElementById('headSearch').onclick = () => toggleSearch()
+document.getElementById('searchClose').onclick = () => toggleSearch(false)
+document.getElementById('searchInput').addEventListener('input', e => runSearch(e.target.value.trim()))
+
+document.getElementById('back').onclick = openSide
+document.getElementById('mask').onclick = closeSide
+document.getElementById('headTitle').onclick = () => renameConv(cur)
+document.getElementById('headAva').onclick = () => renameAvatar(cur)
+function openSide(){ document.getElementById('side').classList.add('open'); document.getElementById('mask').classList.add('on') }
+function closeSide(){ document.getElementById('side').classList.remove('open'); document.getElementById('mask').classList.remove('on') }
+
+applyTheme()
+document.querySelectorAll('#modeSeg button').forEach(b => { b.onclick = () => setMode(b.dataset.mode) })
+syncInsets()
+// 安卓返回键：先关面板，关完了才允许退出 app
+window.__nchatBack = function () {
+  if (document.getElementById('actions').classList.contains('on')) { document.getElementById('actions').classList.remove('on'); return true }
+  if (document.getElementById('dialog').classList.contains('on')) { document.getElementById('dialog').classList.remove('on'); return true }
+  if (document.getElementById('settings').classList.contains('on')) { openSettings(false); return true }
+  if (document.getElementById('viewer').classList.contains('on')) { viewer.classList.remove('on'); return true }
+  if (document.getElementById('searchBar').classList.contains('on')) { toggleSearch(false); return true }
+  if (document.getElementById('atMenu') && document.getElementById('atMenu').classList.contains('on')) {
+    document.getElementById('atMenu').classList.remove('on'); return true
+  }
+  if (document.getElementById('side').classList.contains('open')) { closeSide(); return true }
+  return false
+}
+
+// 服务状态：每 15 秒 ping 一次，挂了点变红
+async function checkHealth(){
+  const dot = document.getElementById('healthDot')
+  const t0 = Date.now()
+  try {
+    const r = await fetch(apiBase() + '/api/health', { cache: 'no-store' })
+    if (!r.ok) throw new Error('bad')
+    const dt = Date.now() - t0
+    dot.className = 'dot' + (dt > 1200 ? ' slow' : '')
+    dot.title = '服务正常（' + dt + 'ms）'
+  } catch {
+    dot.className = 'dot bad'
+    dot.title = '连不上电脑上的服务'
+  }
+}
+/**
+ * 启动：先把本地那份画出来（瞬间有东西看），再去探服务器。
+ * 在线就把历史补齐、把图片语音排进下载队列；离线就把输入框锁掉。
+ */
+/** 首屏摆好了再露出来。只露一次。 */
+function reveal(){
+  if (revealed) return
+  revealed = true
+  syncInsets()
+  requestAnimationFrame(function(){ document.documentElement.classList.remove('boot') })
+}
+
+async function boot(){
+  let meta = null
+  try { meta = await loadMeta() } catch (e) {}
+  void loadMediaDims()
+
+  if (meta && Array.isArray(meta.convs) && meta.convs.length > 0) {
+    metaFull = !!meta.full
+    state = {
+      roles: meta.roles || [], convs: meta.convs, readAt: meta.readAt || {}, delivered: meta.delivered || {},
+      moods: meta.moods || {}, locked: {}, hosts: [], messages: {}, at: meta.at || 0,
+    }
+    await fillMessages()
+    renderConvs(); renderHead(); renderMsgs()
+  } else {
+    state = { roles: [], convs: [], readAt: {}, moods: {}, locked: {}, hosts: [], messages: {} }
+  }
+
+  const ok = await probe()
+  if (!ok) {
+    goOffline(true)
+    booting = false
+    reveal()
+    if (state.convs.length === 0) showToast('还没连过电脑，先连一次把记录下下来')
+    return
+  }
+
+  goOnline(true)
+  // 本地空的时候先别画：等 archive 把全量拖下来一次画完，
+  // 不然第一次进来会「200 条 → 301 条」跳两下
+  const cold = state.convs.length === 0
+  await refresh(cold)
+  await syncArchive(cold)
+  await loadMediaDims()
+  await fillMessages()
+  await switchTo(cur, { animate: false })
+  booting = false
+  reveal()
+  void prefetchAllMedia()
+  void checkHealth()
+}
+
+boot().catch(function(e){ recordError('BOOT', String(e), 'boot') }).finally(function(){
+  booting = false
+  reveal()
+})
+setInterval(() => { if (online && !booting) void refresh() }, 1600)
+setInterval(() => { if (online) void checkHealth() }, 15000)
+
+// 离线时每 5 秒试一次，通了就自己回来，不用手动重启
+setInterval(async () => {
+  if (online) return
+  if (!(await probe())) return
+  goOnline()
+  await refresh()
+  await syncArchive()
+  await fillMessages()
+  // 不调 switchTo —— 它会强制滚到底，正在翻历史的人会被拽走
+  renderConvs(); renderHead(); renderMsgs()
+  void prefetchAllMedia()
+}, 5000)
+
+// 告诉原生层：页面活着。热更新的壳要是跑不起来，原生会靠这个信号回滚。
+try { if (window.NChat && typeof NChat.ready === 'function') NChat.ready() } catch (e) {}
+</script>
+</body>
+</html>

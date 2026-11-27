@@ -1,0 +1,30 @@
+# dsh-cover bundle patch
+#
+# 把本机 SeedVC 的翻唱链路（kge.py）接成 DSH 工具。
+# 没装 SeedVC 这个插件跑不起来 —— 不需要就把 enabled 设 false 或不装。
+#
+# accessToken 走 OneBot 的 **HTTP** 接口（默认 3000），不是 WS。
+# 想全部改成"只生成不发送"把 dryRun 设 true。
+- insert:
+    - id: dsh-cover
+      name: dsh-cover
+      config:
+        # SeedVC 装在哪就填哪，五项都指向你自己那份
+        pythonExe: 'D:/SeedVC/.venv/Scripts/python.exe'
+        script: 'D:/SeedVC/kge.py'
+        wholeScript: 'D:/SeedVC/kge_whole.py'
+        cwd: 'D:/SeedVC'
+        voicesDir: 'D:/SeedVC/voices'
+        # OneBot 接口。不走 QQ 就留空配 dryRun: true
+        oneBotBaseUrl: 'http://127.0.0.1:3000'
+        accessToken: ''
+        userId: ''
+        # SeedVC voices 里的音色模型名，填你自己的
+        voice: 'default'
+        # 语音条上限。超过就改发音频文件，不硬塞。
+        maxVoiceSec: 58
+        # 整首模式的播报。留空就不发。{count} 会替换成段数。
+        notifyStart: ''
+        notifyMid: ''
+        notifyEnd: ''
+        dryRun: true

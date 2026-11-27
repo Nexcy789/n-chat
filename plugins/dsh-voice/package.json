@@ -1,0 +1,12 @@
+{
+  "name": "dsh-voice",
+  "version": "0.1.0",
+  "description": "把文字合成本机语音，产出音频文件给网页播放",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": { "patch": "./cordis.patch.yml" }
+  }
+}

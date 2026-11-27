@@ -1,0 +1,11 @@
+# dsh-skin-deepglass —— 把皮肤插件挂进 DSH 配置树。
+#
+# 只有浏览器半侧有意义（client.js 往页面里插一段 <style>），宿主半侧是空实现。
+# id 必须与包名一致：DSH 的模块系统按 loader entry 名给页面提供 /plugins/<id>/client.js，
+# client.js 里的 __ModuleLoader__.load({ id }) 必须写同一个值，否则报
+# "loaded without registering <id>"。
+#
+# 注意：id 那一行不能写行尾注释，商城预检用正则抓该行值，行尾注释会导致抓不到。
+- insert:
+    - id: dsh-skin-deepglass
+      name: 'dsh-skin-deepglass'

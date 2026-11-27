@@ -1,0 +1,112 @@
+# dsh-webchat 的 bundle patch
+#
+# 装好之后 Loader 会读 package.json 里的 dsh.bundle.patch，自动加载本文件。
+# 这里只放出厂默认值，运行时参数可以在 DSH 设置里改。
+#
+# 路径说明：相对路径按 DSH 进程的工作目录算；也可以写绝对路径。
+
+- insert:
+    - id: dsh-webchat
+      name: dsh-webchat
+      config:
+        enabled: true
+
+        # 网页和接口都挂在这个端口上。3090 是 DSH 自己，别撞。
+        port: 4200
+
+        # 消息流水、游标、会话映射都写这儿。
+        dataDir: 'data/webchat'
+
+        # 每个角色一个子目录，里面放 AGENTS.md。
+        workspaceRoot: 'workspace'
+
+        # 三个角色。id 会出现在消息的 from 字段里，别随便改；
+        # name 是界面上显示的名字，随便改。
+        roles:
+          - id: role1
+            name: 角色一
+            dir: role1
+          - id: role2
+            name: 角色二
+            dir: role2
+          - id: role3
+            name: 角色三
+            dir: role3
+
+        # 用户在消息流里被叫成什么（拼进投递给模型的消息行）
+        userName: '他'
+
+        # 群里每被点名一次额外加多少权重（0 = 只靠活跃度掷骰）。
+        mentionBoost: 3
+
+        # 群名（左上角那个）。长按标题可以临时改，改了存本机
+        groupName: '群聊'
+
+        # ── 情绪与开口频率 ────────────────────────────────────
+        # 【开口门槛】情绪分 + 静默加成 攒到多少才允许主动开口
+        impulseThreshold: 55
+        # 【每人冷却】同一个人两次主动开口之间至少隔多少分钟
+        impulseCooldownMin: 45
+        # 【安静门槛】群里安静满这么多分钟才考虑主动
+        impulseQuietMin: 12
+        # 【静默加成上限】安静够久之后，开口评分还能再加多少分（0 = 不加）
+        quietBonusMax: 30
+        # 【加成拉满时长】安静满这么多分钟加成到顶，12→90 之间线性涨。
+        # 90 分钟给满 30 分 = 你安静一个半小时，情绪只要攒到 25 就够 55 的门槛
+        quietBonusFullMin: 90
+        # 【轮空补偿】连着几轮别人开口、她没轮上，这一次的开口分乘 (1 + 轮空次数 × 0.25)
+        # 最多叠 3 次（×1.75）。这是"正向"那一半：
+        # 只靠冷却压别人，涨得最慢的那个（想念倍率 0.9）会长期排第三，一次都轮不到。
+        missedBonusStep: 0.25
+        missedBonusMax: 3
+        # 【全局冷却】任意一人说完，所有人一起歇这么久（共享额度）
+        # 只按人算的话会轮流冒出来，像被轮番打扰。
+        # 105 分钟 × 8 次 ≈ 14 小时，正好铺满一个白天；
+        # 实际每次会上下浮动 14%（90–120 分钟），不是精确的整点报时。
+        globalCooldownMin: 105
+        # 【每日额度】每天最多主动开口几次（所有人加起来的总额度，用完当天不再主动）
+        maxPerDay: 8
+        # 点了两个人名时，第二个要不要也应一句
+        mentionedSecondChance: 0.5
+        # 【静默时段】这段时间一律不主动开口。留空 = 不设
+        # 格式 "开始-结束"，可以写多个，比如 ['01:00-08:00', '13:00-14:00']
+        quietHours: ['01:00-08:00']
+
+        # 情绪从 0 涨到满要几小时
+        moodFillHours: 6
+        # 各维度的速率倍率，1 = 默认速度
+        moodRates:
+          missing: 1
+          jealousy: 1
+          warmthGain: 1
+          warmthDecay: 1
+          worry: 1
+          boredom: 1
+          annoyanceDecay: 1
+          lust: 1
+
+        # 涩涩（第七维）开关。关掉就把 lust 那一维整个摘掉
+        lust:
+          enabled: true
+
+        # 用户发完一句会等一会儿看有没有下文。窗口内连着发的几条合成一批投过去。
+        mergeWindowMs: 4500
+
+        # 原生图片块：把图直接塞进 content，模型不用调工具就看得见。
+        # 前提是 width/height 必须和真实文件一致（DSH 会校验），代码里用 ffprobe 量。
+        nativeImage: true
+        # 写 'ffprobe' / 'ffmpeg' 就用 PATH 里的；要指定就写绝对路径
+        ffprobePath: 'ffprobe'
+        ffmpegPath: 'ffmpeg'
+
+        # 一个角色连说几条之后强制换人。
+        maxConsecutive: 2
+
+        # 回完之后给第二个人补一句的概率（0 = 关掉）。
+        secondSpeakerChance: 0.2
+
+        # 说话倾向。数值越高越爱接话。
+        talkativeness:
+          role1: 0.7
+          role2: 0.6
+          role3: 0.8

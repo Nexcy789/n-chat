@@ -1,0 +1,9 @@
+# 复制成 android/local.properties，填你自己机器上的路径
+# 这个文件不要提交（.gitignore 已经挡了）
+sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
+
+# 签名证书（不出 release 包可以不填）
+# NCHAT_KEYSTORE=../keystore/my.keystore
+# NCHAT_STORE_PASSWORD=
+# NCHAT_KEY_ALIAS=
+# NCHAT_KEY_PASSWORD=

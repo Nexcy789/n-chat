@@ -1,0 +1,49 @@
+# 我的 profile 覆盖配置
+#
+# 放在 DSH profile 目录下（一般叫 cordis.patch.yml），
+# 会在插件自带的 bundle patch 之后再叠一层。
+#
+# 注意：这个文件整体是一个 **YAML 数组**。新建出来的内容是一个 `[]`，
+# 要用它就把 `[]` 整个替换成下面的条目，不要在 `[]` 后面追加 ——
+# 追加会变成两个 YAML 文档，启动时报 parsePatchList 解析失败。
+#
+# 只写要改的项就行 —— 但注意：某些插件的 config 是**整体替换**，不是深合并，
+# 那种情况要把默认值抄全再改（见 ebbinghaus-memory 的例子）。
+
+# 默认模型
+- id: agent-default-model
+  name: "@deepseek-ai/dsh-agent-default-model"
+  config:
+    provider: deepseek-official
+    model: deepseek-flash
+    reasoningEffort: low
+
+# 群聊：把数据目录指到项目下面
+- id: dsh-webchat
+  config:
+    dataDir: 'data/webchat'
+    workspaceRoot: 'workspace'
+    userName: '他'
+    groupName: '群聊'
+    # 三个人爱接话的程度
+    talkativeness:
+      role1: 0.7
+      role2: 0.6
+      role3: 0.8
+
+# 语音（没装 Breeze 就先别开）
+- id: dsh-voice
+  config:
+    enabled: false
+
+# B 站：没有登录 Cookie 也能用，字幕要本地 faster-whisper
+- id: dsh-bili
+  config:
+    credentialFile: ''
+    asrEnabled: true
+    asrPython: 'python'
+
+# 画图：没装豆包客户端就别开
+- id: dsh-doubao-painter
+  config:
+    enabled: false

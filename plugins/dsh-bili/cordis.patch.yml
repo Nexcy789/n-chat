@@ -1,0 +1,23 @@
+# dsh-bili bundle patch
+#
+# 不配也能用：只用 B 站公开接口，标题 / UP / 时长 / 画面都取得到。
+# 字幕走本地 faster-whisper（要自己装，见 DEPLOY.md）。
+- insert:
+    - id: dsh-bili
+      name: dsh-bili
+      config:
+        # 登录 Cookie 文件（可选）。内容形如 {"SESSDATA": "..."}，JSON。
+        # 空着 = 不登录。B 站有些视频不登录看不到字幕轨，但本地转写能补上。
+        credentialFile: ''
+        maxChars: 4000
+        subtitleMaxChars: 6000
+        # B 站官方字幕接口已默认关闭：它会把别的视频的字幕挂过来，时长校验挡不住。
+        # 想开回来改 true。
+        biliSubtitle: false
+        # 本地转写。装了 faster-whisper 才有效，没装就只是没有字幕，不会报错。
+        asrEnabled: true
+        # 'python' = 走 PATH；用独立 venv 就写它的绝对路径
+        asrPython: 'python'
+        asrModel: 'small'
+        # 留空 = 用 HuggingFace 默认缓存目录
+        asrHfCache: ''

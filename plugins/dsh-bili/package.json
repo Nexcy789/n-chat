@@ -1,0 +1,14 @@
+{
+  "name": "dsh-bili",
+  "version": "0.1.0",
+  "private": true,
+  "description": "给角色两个工具：bili_video 取 B 站视频的标题/UP/简介/字幕，bili_frames 抽帧看画面。零裸包名依赖。",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
